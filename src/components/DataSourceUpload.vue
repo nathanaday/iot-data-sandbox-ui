@@ -18,10 +18,10 @@ const { data: uploadResult, loading, error, execute: uploadDataSource } = useUpl
 const onFileChange = (event: Event) => {
   const target = event.target as HTMLInputElement;
   if (target.files && target.files.length > 0) {
-    selectedFile.value = target.files[0];
+    selectedFile.value = target.files[0]!;
     // Use filename as default name if not provided
     if (!dataSourceName.value) {
-      dataSourceName.value = target.files[0].name.replace(/\.[^/.]+$/, '');
+      dataSourceName.value = target.files[0]!.name.replace(/\.[^/.]+$/, '');
     }
   }
 };
@@ -32,8 +32,10 @@ const handleUpload = async () => {
     return;
   }
 
+  const file = selectedFile.value; // Store in const for type narrowing
+
   const result = await uploadDataSource({
-    file: selectedFile.value,
+    file,
     name: dataSourceName.value || undefined,
   });
 
