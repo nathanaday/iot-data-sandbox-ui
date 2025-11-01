@@ -9,39 +9,48 @@ import {
     navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
 
+import { Kbd } from "@/components/ui/kbd"
+
 import githubMark from "@/assets/github-mark.svg"
 
 const components: { title: string, icon: string, href: string, description: string }[] = [
     {
-        title: "GitHub",
+        title: "iot-data-sandbox",
         icon: githubMark,
         href: "https://github.com/nathanaday/iot-data-sandbox",
         description:
             "Backend Source Code",
     },
     {
-        title: "GitHub",
+        title: "iot-data-sandbox-ui",
         icon: githubMark,
         href: "https://github.com/nathanaday/iot-data-sandbox-ui",
         description:
             "Frontend Source Code",
+    },
+    {
+        title: "nathanaday",
+        icon: githubMark,
+        href: "https://github.com/nathanaday",
+        description:
+            "GitHub Profile",
     },
 
 ]
 </script>
 
 <template>
-    <NavigationMenu class="py-4">
+    <NavigationMenu class="w-full max-w-full py-4 flex items-center justify-start">
+
         <NavigationMenuList class="flex h-full">
 
-            <div class="flex items-center flex-1 h-full px-4">
-                <img src="@/assets/Vector-3.svg" class="h-8 w-8 mr-2">
-                <span class="text-2xl font-semibold text-gray-700">IoT Data Sandbox</span>
+            <div class="flex items-center flex-1 h-full ml-4 mr-1">
+                <img src="@/assets/Vector-3.svg" class="h-8 w-8">
             </div>
-            <NavigationMenuItem class="flex">
 
+            <NavigationMenuItem class="flex">
                 <!-- Title -->
-                <NavigationMenuTrigger class="flex items-center flex-1 h-full">Project Dataset</NavigationMenuTrigger>
+                <NavigationMenuTrigger class="flex flex-1 h-full justify-center">Project Dataset</NavigationMenuTrigger>
                 <NavigationMenuContent>
                     <ul class="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[minmax(0,.75fr)_minmax(0,1fr)]">
                         <li class="row-span-3">
@@ -80,5 +89,12 @@ const components: { title: string, icon: string, href: string, description: stri
                 </NavigationMenuContent>
             </NavigationMenuItem>
         </NavigationMenuList>
+
+        
+        <div class="flex-1"></div>
+        <div class="flex items-center h-full px-4 gap-4">
+            <span class="text-2xl font-semibold text-gray-600">IoT Data Sandbox</span>
+            <Kbd>v.0.1.0</Kbd>
+        </div>
     </NavigationMenu>
 </template>
