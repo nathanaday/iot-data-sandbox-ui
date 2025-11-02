@@ -15,13 +15,15 @@ import {
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-50">
-        <header class="bg-white shadow-sm">
+    <div class="flex flex-col h-screen bg-gray-50">
+        <!-- Row 1: Header - sticky to top -->
+        <header class="sticky top-0 z-50 bg-white shadow-sm">
             <NavHeader />
         </header>
 
-        <main class="container mx-auto px-2 py-2">
-            <ResizablePanelGroup direction="horizontal" class="gap-2 min-h-[600px]">
+        <!-- Row 2: Main content area - fills available space -->
+        <main class="flex-1 overflow-hidden container mx-auto px-2 py-2">
+            <ResizablePanelGroup direction="horizontal" class="gap-2 h-full">
                 <!-- Left Panel: Tool Manager -->
                 <ResizablePanel :default-size="25" :max-size="50" :min-size="10" :collapsible="true"
                     :collapsed-size="0">
@@ -45,12 +47,12 @@ import {
                     <LayerManager />
                 </ResizablePanel>
             </ResizablePanelGroup>
-
-            <!-- Agent View -->
-            <div class="mt-2 w-full h-full">
-                <AgentView />
-            </div>
         </main>
+
+        <!-- Row 3: Agent View - sticky to bottom, max height 250px -->
+        <div class="sticky bottom-0 z-50 max-h-[250px] overflow-y-auto bg-gray-50 container mx-auto px-2 py-2">
+            <AgentView />
+        </div>
     </div>
 </template>
 
