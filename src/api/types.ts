@@ -31,6 +31,8 @@ export interface DataSourceMetadata {
   start_time: string;
   end_time: string;
   row_count: number;
+  time_label: string;
+  value_label: string;
   when_created: string;
 }
 
@@ -50,6 +52,8 @@ export interface UploadResponse {
   start_time: string;
   end_time: string;
   row_count: number;
+  time_label: string;
+  value_label: string;
   when_created: string;
 }
 
@@ -74,5 +78,77 @@ export interface DataQueryParams {
 export interface UploadParams {
   file: File;
   name?: string;
+}
+
+/**
+ * Project response
+ */
+export interface ProjectResponse {
+  project_id: number;
+  name: string;
+  layer_count: number;
+  when_created: string;
+}
+
+/**
+ * Response from listing all projects
+ */
+export interface ProjectListResponse {
+  projects: ProjectResponse[];
+}
+
+/**
+ * Request to create a new project
+ */
+export interface CreateProjectRequest {
+  name: string;
+}
+
+/**
+ * Layer response
+ */
+export interface LayerResponse {
+  data_layer_id: number;
+  project_id: number;
+  data_source_id: number;
+  name: string;
+  color: string;
+  is_visible: boolean;
+  z_index: number;
+}
+
+/**
+ * Response from listing all layers
+ */
+export interface LayerListResponse {
+  layers: LayerResponse[];
+}
+
+/**
+ * Request to create a new layer
+ */
+export interface CreateLayerRequest {
+  name: string;
+}
+
+/**
+ * Request to update layer color
+ */
+export interface UpdateColorRequest {
+  color: string;
+}
+
+/**
+ * Request to update layer visibility
+ */
+export interface UpdateVisibilityRequest {
+  is_visible: boolean;
+}
+
+/**
+ * Request to duplicate a layer
+ */
+export interface DuplicateLayerRequest {
+  new_name: string;
 }
 

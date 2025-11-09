@@ -13,6 +13,15 @@ export type {
   ErrorResponse,
   DataQueryParams,
   UploadParams,
+  ProjectResponse,
+  ProjectListResponse,
+  CreateProjectRequest,
+  LayerResponse,
+  LayerListResponse,
+  CreateLayerRequest,
+  UpdateColorRequest,
+  UpdateVisibilityRequest,
+  DuplicateLayerRequest,
 } from './types';
 
 // Export client and utilities
@@ -23,4 +32,12 @@ export {
   createApiClient,
   type ApiClientConfig,
 } from './client';
+
+// Export Axios-based API service
+export {
+  ApiService,
+  ApiServiceError,
+  apiService,
+  createApiService,
+} from './apiService';
 
