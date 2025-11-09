@@ -36,7 +36,7 @@ const dropShadowStyle = computed(() => {
         >
           <!-- Gradient container -->
           <div class="absolute inset-0 rounded-lg bg-gradient-to-r from-[#2F82E0] via-[#927EF0] to-[#F479FF] opacity-20 blur-sm"></div>
-          <div class="relative p-[2px] rounded-lg bg-gradient-to-r from-[#2F82E0] via-[#927EF0] to-[#F479FF]">
+          <div class="relative p-[1px] rounded-lg bg-gradient-to-r from-[#2F82E0] via-[#927EF0] to-[#F479FF]">
             <Textarea
               v-model="message"
               placeholder="Ask me anything about your IoT data..."

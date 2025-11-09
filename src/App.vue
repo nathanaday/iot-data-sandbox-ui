@@ -22,7 +22,7 @@ import {
         </header>
 
         <!-- Row 2: Main content area - fills available space -->
-        <main class="flex-1 overflow-hidden container mx-auto px-2 py-2">
+        <main class="flex-1 overflow-hidden w-full px-2 py-2">
             <ResizablePanelGroup direction="horizontal" class="gap-2 h-full">
                 <!-- Left Panel: Tool Manager -->
                 <ResizablePanel :default-size="25" :max-size="50" :min-size="10" :collapsible="true"
@@ -58,6 +58,6 @@ import {
 
 <style scoped>
 .container {
-    max-width: 1400px;
+    width: 100%;
 }
 </style>
