@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Icon } from '@iconify/vue';
 import { useLayersStore } from '@/stores/layers';
 import { useProjectsStore } from '@/stores/projects';
@@ -30,6 +31,22 @@ const MIN_WIDTH = 178;
 const layerMetadata = ref<Map<number, DataSourceMetadata>>(new Map());
 const loadingMetadata = ref<Set<number>>(new Set());
 const failedMetadata = ref<Set<number>>(new Set());
+
+// Color palettes
+const colorThemes = [
+    {
+        name: 'Theme 1',
+        colors: ['#003f5c', '#2f4b7c', '#665191', '#a05195', '#d45087', '#f95d6a', '#ff7c43', '#ffa600']
+    },
+    {
+        name: 'Theme 2',
+        colors: ['#009eba', '#149cd1', '#5296df', '#8a8be1', '#bb7cd4', '#e26cb7', '#f96090', '#ff6363']
+    },
+    {
+        name: 'Theme 3',
+        colors: ['#bababa', '#9d9d9d', '#818181', '#666666', '#4c4c4c', '#343434', '#1d1d1d', '#000000']
+    }
+];
 
 let resizeObserver: ResizeObserver | null = null;
 
@@ -51,10 +68,7 @@ const handleSelectLayers = () => {
     console.log('Select Layers clicked');
 };
 
-const handleColorChange = async (layer: LayerResponse, event: Event) => {
-    const target = event.target as HTMLInputElement;
-    const newColor = target.value;
-    
+const handleColorChange = async (layer: LayerResponse, newColor: string) => {
     try {
         await layersStore.updateLayerColor(layer.data_layer_id, newColor);
     } catch (error) {
@@ -192,25 +206,46 @@ onUnmounted(() => {
             <div v-if="projectLayers.length === 0" class="text-center py-8 text-muted-foreground">
                 <Icon icon="material-symbols:layers-outline" class="mx-auto mb-2 text-4xl opacity-50" />
                 <p class="text-sm">No layers in this project</p>
-                <p class="text-xs mt-1">Click "Add Layer" to get started</p>
             </div>
 
             <!-- Layer cards -->
             <Card 
                 v-for="layer in projectLayers" 
                 :key="layer.data_layer_id"
-                class="border-2 hover:border-primary/50 transition-colors min-w-[240px]"
+                class="border-2 hover:border-gray-300 transition-colors min-w-[240px]"
             >
                 <div class="px-4 py-0">
                     <div class="flex items-center gap-2">
                         <!-- Color picker -->
-                        <input
-                            type="color"
-                            :value="layer.color"
-                            @input="handleColorChange(layer, $event)"
-                            class="w-5 h-5 rounded-sm cursor-pointer flex-shrink-0"
-                            :title="`Change color for ${layer.name}`"
-                        />
+                        <Popover>
+                            <PopoverTrigger as-child>
+                                <button
+                                    :style="{ backgroundColor: layer.color }"
+                                    class="w-6 h-6 rounded-sm cursor-pointer flex-shrink-0 border-2 border-gray-300 hover:border-gray-400 transition-colors"
+                                    :title="`Change color for ${layer.name}`"
+                                />
+                            </PopoverTrigger>
+                            <PopoverContent class="w-auto p-3" :align="'start'">
+                                <div class="space-y-3">
+                                    <div v-for="theme in colorThemes" :key="theme.name" class="space-y-1.5">
+                                        <div class="text-xs font-medium text-muted-foreground">
+                                            {{ theme.name }}
+                                        </div>
+                                        <div class="grid grid-cols-8 gap-1.5">
+                                            <button
+                                                v-for="color in theme.colors"
+                                                :key="color"
+                                                :style="{ backgroundColor: color }"
+                                                @click="handleColorChange(layer, color)"
+                                                class="w-7 h-7 rounded-sm cursor-pointer border-2 transition-all hover:scale-110"
+                                                :class="layer.color.toLowerCase() === color.toLowerCase() ? 'border-white ring-2 ring-gray-400' : 'border-gray-300 hover:border-gray-400'"
+                                                :title="color"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
                         <!-- Title -->
                         <div class="text-sm leading-tight">
                             {{ layer.name }}
