@@ -10,6 +10,7 @@ import type {
   CreateProjectRequest,
   LayerListResponse,
 } from '@/api';
+import { useLayersStore } from './layers';
 
 export const useProjectsStore = defineStore('projects', () => {
   // State
@@ -154,7 +155,79 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   /**
-   * Set the selected project ID
+   * Load a project with all its data (layers and timeseries)
+   * This is the main function to call when selecting a project
+   */
+  async function loadProject(id: number): Promise<void> {
+    loading.value = true;
+    error.value = null;
+    
+    try {
+      const layersStore = useLayersStore();
+      
+      // Step 1: Fetch project details
+      const project = await apiService.getProject(id);
+      currentProject.value = project;
+      selectedProjectId.value = id;
+      
+      // Update projects list
+      const index = projects.value.findIndex(p => p.project_id === id);
+      if (index !== -1) {
+        projects.value[index] = project;
+      } else {
+        projects.value.push(project);
+      }
+      
+      // Step 2: Fetch project layers list
+      const layersResponse = await apiService.getProjectLayers(id);
+      
+      if (layersResponse.layers.length === 0) {
+        // No layers in this project
+        layersStore.setLayers([]);
+        return;
+      }
+      
+      // Step 3: Fetch detailed info for each layer (in parallel)
+      const layerDetails = await Promise.all(
+        layersResponse.layers.map(async (layerSummary) => {
+          try {
+            return await apiService.getLayer(layerSummary.data_layer_id);
+          } catch (err) {
+            console.error(`Failed to fetch layer ${layerSummary.data_layer_id}:`, err);
+            return null;
+          }
+        })
+      );
+      
+      // Filter out any failed fetches and update layers store
+      const validLayers = layerDetails.filter(layer => layer !== null);
+      layersStore.setLayers(validLayers);
+      
+      // Step 4: Fetch timeseries data for each layer (in parallel)
+      await Promise.all(
+        validLayers.map(async (layer) => {
+          try {
+            await layersStore.fetchLayerData(layer.data_layer_id);
+          } catch (err) {
+            console.error(`Failed to fetch data for layer ${layer.data_layer_id}:`, err);
+            // Continue loading other layers even if one fails
+          }
+        })
+      );
+      
+      console.log(`Project ${project.name} loaded successfully with ${validLayers.length} layers`);
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to load project';
+      console.error('Error loading project:', err);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
+   * Set the selected project ID (without loading data)
+   * Use loadProject() instead to load full project data
    */
   function setSelectedProjectId(id: number | null): void {
     const previousId = selectedProjectId.value;
@@ -215,6 +288,7 @@ export const useProjectsStore = defineStore('projects', () => {
     createProject,
     deleteProject,
     fetchProjectLayers,
+    loadProject,
     setCurrentProject,
     setSelectedProjectId,
     setSelectedLayerId,

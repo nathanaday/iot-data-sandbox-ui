@@ -23,6 +23,9 @@ export const useLayersStore = defineStore('layers', () => {
   const currentLayer = ref<LayerResponse | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  
+  // Cache for timeseries data - keyed by layer ID
+  const layerDataCache = ref<Map<number, DataQueryResponse>>(new Map());
 
   // Computed
   const layerCount = computed(() => layers.value.length);
@@ -210,6 +213,8 @@ export const useLayersStore = defineStore('layers', () => {
     error.value = null;
     try {
       const data = await apiService.getLayerData(id, params);
+      // Cache the data
+      layerDataCache.value.set(id, data);
       return data;
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to fetch layer data';
@@ -217,6 +222,20 @@ export const useLayersStore = defineStore('layers', () => {
     } finally {
       loading.value = false;
     }
+  }
+  
+  /**
+   * Get cached layer data (without fetching)
+   */
+  function getCachedLayerData(id: number): DataQueryResponse | undefined {
+    return layerDataCache.value.get(id);
+  }
+  
+  /**
+   * Check if layer data is cached
+   */
+  function hasLayerDataCached(id: number): boolean {
+    return layerDataCache.value.has(id);
   }
 
   /**
@@ -317,6 +336,7 @@ export const useLayersStore = defineStore('layers', () => {
     currentLayer.value = null;
     loading.value = false;
     error.value = null;
+    layerDataCache.value.clear();
   }
 
   return {
@@ -324,6 +344,7 @@ export const useLayersStore = defineStore('layers', () => {
     currentLayer,
     loading,
     error,
+    layerDataCache,
     layerCount,
     getLayerById,
     getLayersByProjectId,
@@ -336,6 +357,8 @@ export const useLayersStore = defineStore('layers', () => {
     updateLayerVisibility,
     duplicateLayer,
     fetchLayerData,
+    getCachedLayerData,
+    hasLayerDataCached,
     fetchLayerDataMetadata,
     loadLayerCSV,
     setLayers,

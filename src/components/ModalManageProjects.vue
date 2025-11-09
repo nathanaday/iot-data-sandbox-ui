@@ -90,12 +90,17 @@ const formatDate = (dateString: string) => {
   })
 }
 
-const handleSelectProject = (projectId: number) => {
-  projectsStore.setSelectedProjectId(projectId)
-  // Reset any confirmation state
-  confirmingDeleteId.value = null
-  canConfirmDelete.value = false
-  open.value = false
+const handleSelectProject = async (projectId: number) => {
+  try {
+    await projectsStore.loadProject(projectId)
+    // Reset any confirmation state
+    confirmingDeleteId.value = null
+    canConfirmDelete.value = false
+    open.value = false
+  } catch (err) {
+    error.value = 'Failed to load project. Please try again.'
+    console.error('Error loading project:', err)
+  }
 }
 
 const handleRemoveProject = (projectId: number) => {

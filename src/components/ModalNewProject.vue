@@ -134,8 +134,9 @@ const handleCreate = async () => {
     await apiService.loadLayerCSV(layer.data_layer_id, { file })
     console.log('CSV data loaded successfully')
     
-    // Step 4: Set this as the selected project
-    projectsStore.setSelectedProjectId(project.project_id)
+    // Step 4: Load the project with all its data
+    await projectsStore.loadProject(project.project_id)
+    console.log('Project loaded successfully')
     
     // Success! Reset and close
     selectedFile.value = null
