@@ -67,6 +67,8 @@ const handleVisibilityToggle = async (layer: LayerResponse, checked: boolean) =>
         await layersStore.updateLayerVisibility(layer.data_layer_id, checked);
     } catch (error) {
         console.error('Failed to update layer visibility:', error);
+        // Revert optimistic update on error by refetching the layer
+        await layersStore.fetchLayer(layer.data_layer_id);
     }
 };
 
@@ -219,12 +221,12 @@ onUnmounted(() => {
                         </Badge>
                         <!-- Spacer -->
                         <div class="flex-grow"></div>
-                        <!-- Visibility toggle (Future / tentative) -->
+                        <!-- Visibility toggle -->
                         <div class="flex items-center gap-2 flex-shrink-0">
                             <Switch
                                 :id="`visibility-${layer.data_layer_id}`"
-                                :checked="layer.is_visible"
-                                @update:checked="(checked: boolean) => handleVisibilityToggle(layer, checked)"
+                                :model-value="layer.is_visible"
+                                @update:model-value="(checked: boolean) => handleVisibilityToggle(layer, checked)"
                                 class="scale-75"
                             />
                         </div>

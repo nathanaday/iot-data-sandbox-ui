@@ -174,26 +174,52 @@ async function loadChartData() {
     }
 }
 
-// Watch for project or layer changes (including visibility)
-watch([currentProject, projectLayers], () => {
-    loadChartData();
-}, { deep: true });
+// Watch for project changes or layer count changes - reload all data
+watch(
+    () => ({
+        projectId: currentProject.value?.project_id,
+        layerCount: projectLayers.value.length,
+    }),
+    () => {
+        loadChartData();
+    },
+    { deep: true }
+);
 
 // Watch for layer visibility changes and update chart without reloading data
 watch(
-    () => projectLayers.value.map(l => ({ id: l.data_layer_id, name: l.name, visible: l.is_visible })),
-    () => {
-        // Update chart dataset visibility without reloading data
-        if (chartData.value.datasets.length > 0) {
+    () => projectLayers.value.map(l => ({ 
+        id: l.data_layer_id, 
+        name: l.name, 
+        visible: l.is_visible,
+        color: l.color 
+    })),
+    (newLayers, oldLayers) => {
+        // Only update visibility if data is already loaded
+        if (chartData.value.datasets.length === 0) return;
+        
+        // Check if only visibility/color changed (not layer structure)
+        const onlyVisibilityChanged = newLayers.length === oldLayers?.length &&
+            newLayers.every((nl, i) => 
+                nl.id === oldLayers[i]?.id && 
+                nl.name === oldLayers[i]?.name
+            );
+        
+        if (onlyVisibilityChanged) {
+            // Update chart dataset visibility and colors without reloading data
             chartData.value.datasets.forEach((dataset) => {
-                // Match dataset to layer by label (layer name)
                 const layer = projectLayers.value.find(l => l.name === dataset.label);
                 if (layer) {
                     dataset.hidden = !layer.is_visible;
+                    dataset.borderColor = layer.color;
+                    dataset.backgroundColor = layer.color + '33';
                 }
             });
             // Force chart update by creating new reference
             chartData.value = { ...chartData.value };
+        } else {
+            // Layer structure changed, reload all data
+            loadChartData();
         }
     },
     { deep: true }

@@ -155,13 +155,25 @@ export const useLayersStore = defineStore('layers', () => {
     id: number,
     isVisible: boolean
   ): Promise<LayerResponse> {
+    // Optimistic update - immediately update local state
+    const index = layers.value.findIndex(l => l.data_layer_id === id);
+    const previousState = index !== -1 ? { ...layers.value[index] } : null;
+    
+    if (index !== -1) {
+      layers.value[index] = { ...layers.value[index], is_visible: isVisible };
+    }
+    
+    if (currentLayer.value?.data_layer_id === id) {
+      currentLayer.value = { ...currentLayer.value, is_visible: isVisible };
+    }
+
     loading.value = true;
     error.value = null;
     try {
       const data: UpdateVisibilityRequest = { is_visible: isVisible };
       const layer = await apiService.updateLayerVisibility(id, data);
 
-      const index = layers.value.findIndex(l => l.data_layer_id === id);
+      // Update with server response
       if (index !== -1) {
         layers.value[index] = layer;
       }
@@ -172,6 +184,15 @@ export const useLayersStore = defineStore('layers', () => {
 
       return layer;
     } catch (err) {
+      // Revert optimistic update on error
+      if (previousState && index !== -1) {
+        layers.value[index] = previousState;
+      }
+      
+      if (currentLayer.value?.data_layer_id === id && previousState) {
+        currentLayer.value = previousState;
+      }
+      
       error.value =
         err instanceof Error ? err.message : 'Failed to update layer visibility';
       throw err;
