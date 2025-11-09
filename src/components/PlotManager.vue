@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import {
     Menubar,
     MenubarCheckboxItem,
@@ -10,6 +11,12 @@ import {
     MenubarTrigger,
 } from '@/components/ui/menubar';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import ModalNewProject from '@/components/ModalNewProject.vue';
+import ModalManageProjects from '@/components/ModalManageProjects.vue';
+
+const showNewProjectModal = ref(false);
+const showOpenProjectModal = ref(false);
+const showManageProjectsModal = ref(false);
 </script>
 
 <template>
@@ -19,15 +26,15 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
             <MenubarMenu>
                 <MenubarTrigger>Project</MenubarTrigger>
                 <MenubarContent>
-                    <MenubarItem>
+                    <MenubarItem @click="showNewProjectModal = true">
                         New Project <MenubarShortcut>⌘N</MenubarShortcut>
                     </MenubarItem>
-                    <MenubarItem>
+                    <MenubarItem @click="showOpenProjectModal = true">
                         Open Project <MenubarShortcut>⌘O</MenubarShortcut>
                     </MenubarItem>
                     <MenubarSeparator />
-                    <MenubarItem>
-                        Save Project <MenubarShortcut>⌘S</MenubarShortcut>
+                    <MenubarItem @click="showManageProjectsModal = true">
+                        Manage Projects <MenubarShortcut>⌘M</MenubarShortcut>
                     </MenubarItem>
                 </MenubarContent>
             </MenubarMenu>
@@ -61,4 +68,12 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
         </CardContent>
     </Card>
 
+    <!-- New Project Modal -->
+    <ModalNewProject v-model:open="showNewProjectModal" />
+    
+    <!-- Open Project Modal (Select Mode) -->
+    <ModalManageProjects v-model:open="showOpenProjectModal" mode="select" />
+    
+    <!-- Manage Projects Modal (Manage Mode) -->
+    <ModalManageProjects v-model:open="showManageProjectsModal" mode="manage" />
 </template>

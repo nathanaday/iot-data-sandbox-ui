@@ -16,10 +16,5 @@
     "ui": "@/components/ui",
     "lib": "@/lib",
     "composables": "@/composables"
-  },
-  "registries": {
-    "shadcn": {
-      "url": "https://shadcn-vue.com/r"
-    }
   }
 }

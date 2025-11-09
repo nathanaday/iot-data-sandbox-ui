@@ -17,6 +17,10 @@ export const useProjectsStore = defineStore('projects', () => {
   const currentProject = ref<ProjectResponse | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  
+  // Selected project and layer IDs for tracking application state
+  const selectedProjectId = ref<number | null>(null);
+  const selectedLayerId = ref<number | null>(null);
 
   // Computed
   const projectCount = computed(() => projects.value.length);
@@ -107,6 +111,16 @@ export const useProjectsStore = defineStore('projects', () => {
       if (currentProject.value?.project_id === id) {
         currentProject.value = null;
       }
+      
+      // If the deleted project was selected, select another project or set to null
+      if (selectedProjectId.value === id) {
+        if (projects.value.length > 0) {
+          selectedProjectId.value = projects.value[0].project_id;
+        } else {
+          selectedProjectId.value = null;
+        }
+        selectedLayerId.value = null;
+      }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to delete project';
       throw err;
@@ -140,6 +154,25 @@ export const useProjectsStore = defineStore('projects', () => {
   }
 
   /**
+   * Set the selected project ID
+   */
+  function setSelectedProjectId(id: number | null): void {
+    const previousId = selectedProjectId.value;
+    selectedProjectId.value = id;
+    // Clear selected layer when project changes
+    if (id === null || id !== previousId) {
+      selectedLayerId.value = null;
+    }
+  }
+
+  /**
+   * Set the selected layer ID
+   */
+  function setSelectedLayerId(id: number | null): void {
+    selectedLayerId.value = id;
+  }
+
+  /**
    * Clear error state
    */
   function clearError(): void {
@@ -154,6 +187,8 @@ export const useProjectsStore = defineStore('projects', () => {
     currentProject.value = null;
     loading.value = false;
     error.value = null;
+    selectedProjectId.value = null;
+    selectedLayerId.value = null;
   }
 
   return {
@@ -161,6 +196,8 @@ export const useProjectsStore = defineStore('projects', () => {
     currentProject,
     loading,
     error,
+    selectedProjectId,
+    selectedLayerId,
     projectCount,
     getProjectById,
     sortedProjects,
@@ -170,6 +207,8 @@ export const useProjectsStore = defineStore('projects', () => {
     deleteProject,
     fetchProjectLayers,
     setCurrentProject,
+    setSelectedProjectId,
+    setSelectedLayerId,
     clearError,
     $reset,
   };
