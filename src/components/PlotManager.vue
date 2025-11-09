@@ -132,7 +132,6 @@ async function loadChartData() {
                     // Try to get cached data first, fetch if not available
                     let response = layersStore.getCachedLayerData(layer.data_layer_id);
                     if (!response) {
-                        console.log(`Fetching data for layer ${layer.name}`);
                         response = await layersStore.fetchLayerData(layer.data_layer_id);
                     }
                     
@@ -153,8 +152,11 @@ async function loadChartData() {
                         tension: 0.1,
                         hidden: !layer.is_visible,
                     };
-                } catch (error) {
-                    console.error(`Failed to load data for layer ${layer.name}:`, error);
+                } catch (error: any) {
+                    // Only log non-404 errors (404 means data source doesn't exist)
+                    if (error?.status !== 404) {
+                        console.error(`Failed to load data for layer ${layer.name}:`, error);
+                    }
                     return null;
                 }
             })
@@ -172,10 +174,30 @@ async function loadChartData() {
     }
 }
 
-// Watch for project or layer changes
+// Watch for project or layer changes (including visibility)
 watch([currentProject, projectLayers], () => {
     loadChartData();
 }, { deep: true });
+
+// Watch for layer visibility changes and update chart without reloading data
+watch(
+    () => projectLayers.value.map(l => ({ id: l.data_layer_id, name: l.name, visible: l.is_visible })),
+    () => {
+        // Update chart dataset visibility without reloading data
+        if (chartData.value.datasets.length > 0) {
+            chartData.value.datasets.forEach((dataset) => {
+                // Match dataset to layer by label (layer name)
+                const layer = projectLayers.value.find(l => l.name === dataset.label);
+                if (layer) {
+                    dataset.hidden = !layer.is_visible;
+                }
+            });
+            // Force chart update by creating new reference
+            chartData.value = { ...chartData.value };
+        }
+    },
+    { deep: true }
+);
 
 // Load data on mount
 onMounted(() => {
@@ -222,9 +244,8 @@ onMounted(() => {
             </MenubarMenu>
         </Menubar>
         <CardHeader>
-            <CardTitle>Plot Manager</CardTitle>
             <CardDescription>
-                {{ currentProject ? `Visualizing ${projectLayers.length} layer(s) from "${currentProject.name}"` : 'No project selected' }}
+                {{ currentProject ? `Visualizing ${projectLayers.length} layer${projectLayers.length !== 1 ? 's' : ''}` : 'No project selected' }}
             </CardDescription>
         </CardHeader>
         <CardContent class="flex-1 min-h-0">

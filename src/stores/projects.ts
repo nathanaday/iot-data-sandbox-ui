@@ -208,8 +208,11 @@ export const useProjectsStore = defineStore('projects', () => {
         validLayers.map(async (layer) => {
           try {
             await layersStore.fetchLayerData(layer.data_layer_id);
-          } catch (err) {
-            console.error(`Failed to fetch data for layer ${layer.data_layer_id}:`, err);
+          } catch (err: any) {
+            // Only log non-404 errors (404 means data source doesn't exist, which is expected)
+            if (err?.status !== 404) {
+              console.error(`Failed to fetch data for layer ${layer.data_layer_id}:`, err);
+            }
             // Continue loading other layers even if one fails
           }
         })
