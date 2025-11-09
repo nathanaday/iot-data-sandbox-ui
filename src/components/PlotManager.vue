@@ -11,6 +11,7 @@ import {
     MenubarTrigger,
 } from '@/components/ui/menubar';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import ModalNewProject from '@/components/ModalNewProject.vue';
 import ModalManageProjects from '@/components/ModalManageProjects.vue';
 import { useProjectsStore } from '@/stores/projects';
@@ -271,7 +272,7 @@ onMounted(() => {
         </Menubar>
         <CardHeader>
             <CardDescription>
-                {{ currentProject ? `Visualizing ${projectLayers.length} layer${projectLayers.length !== 1 ? 's' : ''}` : 'No project selected' }}
+                Plot Visualization
             </CardDescription>
         </CardHeader>
         <CardContent class="flex-1 min-h-0">
@@ -294,10 +295,22 @@ onMounted(() => {
 
             <!-- No Project State -->
             <div v-else-if="!currentProject" class="flex items-center justify-center h-96">
-                <div class="text-center text-muted-foreground">
-                    <Icon icon="material-symbols:folder-open-outline" class="w-16 h-16 mx-auto mb-4" />
-                    <p class="font-semibold">No project selected</p>
-                    <p class="text-sm">Open or create a project to start visualizing data</p>
+                <div class="text-center text-muted-foreground space-y-6">
+                    <div>
+                        <Icon icon="material-symbols:folder-open-outline" class="w-16 h-16 mx-auto mb-4" />
+                        <p class="font-semibold text-lg mb-2">No project selected</p>
+                        <p class="text-sm">Open or create a project to start visualizing data</p>
+                    </div>
+                    <div class="flex gap-3 justify-center">
+                        <Button @click="showNewProjectModal = true" variant="outline">
+                            <Icon icon="material-symbols:add" class="w-4 h-4 mr-2" />
+                            Create Project
+                        </Button>
+                        <Button @click="showOpenProjectModal = true" variant="outline">
+                            <Icon icon="material-symbols:folder-open" class="w-4 h-4 mr-2" />
+                            Select Project
+                        </Button>
+                    </div>
                 </div>
             </div>
 
