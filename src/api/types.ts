@@ -152,3 +152,15 @@ export interface DuplicateLayerRequest {
   new_name: string;
 }
 
+/**
+ * Response from previewing CSV data (without creating datasource)
+ */
+export interface PreviewDataResponse {
+  type: string;
+  row_count: number;
+  start_time: string;
+  end_time: string;
+  time_label: string;
+  value_label: string;
+}
+

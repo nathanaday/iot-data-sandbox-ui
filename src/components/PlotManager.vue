@@ -17,17 +17,17 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
         <!-- Menubar -->
         <Menubar class="border-0 rounded-t-xl rounded-b-none border-b mb-4">
             <MenubarMenu>
-                <MenubarTrigger>File</MenubarTrigger>
+                <MenubarTrigger>Project</MenubarTrigger>
                 <MenubarContent>
                     <MenubarItem>
-                        New Tab <MenubarShortcut>⌘T</MenubarShortcut>
+                        New Project <MenubarShortcut>⌘N</MenubarShortcut>
                     </MenubarItem>
                     <MenubarItem>
-                        New Window <MenubarShortcut>⌘N</MenubarShortcut>
+                        Open Project <MenubarShortcut>⌘O</MenubarShortcut>
                     </MenubarItem>
                     <MenubarSeparator />
                     <MenubarItem>
-                        Print... <MenubarShortcut>⌘P</MenubarShortcut>
+                        Save Project <MenubarShortcut>⌘S</MenubarShortcut>
                     </MenubarItem>
                 </MenubarContent>
             </MenubarMenu>
@@ -40,27 +40,13 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
                     <MenubarItem>
                         Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
                     </MenubarItem>
-                    <MenubarSeparator />
-                    <MenubarItem>Cut</MenubarItem>
-                    <MenubarItem>Copy</MenubarItem>
-                    <MenubarItem>Paste</MenubarItem>
                 </MenubarContent>
             </MenubarMenu>
             <MenubarMenu>
-                <MenubarTrigger>View</MenubarTrigger>
+                <MenubarTrigger>Export</MenubarTrigger>
                 <MenubarContent>
-                    <MenubarCheckboxItem>Always Show Bookmarks Bar</MenubarCheckboxItem>
-                    <MenubarCheckboxItem :model-value="true">
-                        Always Show Full URLs
-                    </MenubarCheckboxItem>
-                    <MenubarSeparator />
-                    <MenubarItem inset>
-                        Reload <MenubarShortcut>⌘R</MenubarShortcut>
-                    </MenubarItem>
-                    <MenubarSeparator />
-                    <MenubarItem inset>
-                        Toggle Fullscreen
-                    </MenubarItem>
+                    <MenubarItem>Export raw data<MenubarShortcut>.CSV</MenubarShortcut></MenubarItem>
+                    <MenubarItem>Export plot<MenubarShortcut>.PNG</MenubarShortcut></MenubarItem>
                 </MenubarContent>
             </MenubarMenu>
         </Menubar>

@@ -22,6 +22,7 @@ export type {
   UpdateColorRequest,
   UpdateVisibilityRequest,
   DuplicateLayerRequest,
+  PreviewDataResponse,
 } from './types';
 
 // Export client and utilities

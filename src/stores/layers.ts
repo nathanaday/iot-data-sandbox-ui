@@ -14,6 +14,7 @@ import type {
   DataQueryResponse,
   DataQueryParams,
   UploadParams,
+  DataSourceMetadata,
 } from '@/api';
 
 export const useLayersStore = defineStore('layers', () => {
@@ -219,6 +220,28 @@ export const useLayersStore = defineStore('layers', () => {
   }
 
   /**
+   * Get layer data source metadata
+   */
+  async function fetchLayerDataMetadata(
+    id: number
+  ): Promise<DataSourceMetadata> {
+    loading.value = true;
+    error.value = null;
+    try {
+      const metadata = await apiService.getLayerDataMetadata(id);
+      return metadata;
+    } catch (err) {
+      error.value =
+        err instanceof Error
+          ? err.message
+          : 'Failed to fetch layer data metadata';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
    * Load CSV data into layer
    */
   async function loadLayerCSV(
@@ -313,6 +336,7 @@ export const useLayersStore = defineStore('layers', () => {
     updateLayerVisibility,
     duplicateLayer,
     fetchLayerData,
+    fetchLayerDataMetadata,
     loadLayerCSV,
     setLayers,
     addLayers,

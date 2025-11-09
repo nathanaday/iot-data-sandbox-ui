@@ -20,6 +20,7 @@ import type {
   UpdateColorRequest,
   UpdateVisibilityRequest,
   DuplicateLayerRequest,
+  PreviewDataResponse,
 } from './types';
 import { apiConfig } from './config';
 
@@ -330,6 +331,17 @@ export class ApiService {
   }
 
   /**
+   * Get layer data source metadata
+   * GET /api/layers/{id}/data/metadata
+   */
+  async getLayerDataMetadata(id: number): Promise<DataSourceMetadata> {
+    const response = await this.axiosInstance.get<DataSourceMetadata>(
+      `/api/layers/${id}/data/metadata`
+    );
+    return response.data;
+  }
+
+  /**
    * Load CSV data into layer
    * POST /api/layers/{id}/load-csv
    */
@@ -345,6 +357,30 @@ export class ApiService {
 
     const response = await this.axiosInstance.post<LayerResponse>(
       `/api/layers/${id}/load-csv`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  }
+
+  // ============================
+  // UI ENDPOINTS
+  // ============================
+
+  /**
+   * Preview CSV data without creating a datasource
+   * POST /api/ui/preview_data
+   */
+  async previewCSV(file: File): Promise<PreviewDataResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await this.axiosInstance.post<PreviewDataResponse>(
+      '/api/ui/preview_data',
       formData,
       {
         headers: {

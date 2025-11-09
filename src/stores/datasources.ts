@@ -11,6 +11,7 @@ import type {
   UploadResponse,
   DataQueryResponse,
   DataQueryParams,
+  PreviewDataResponse,
 } from '@/api';
 
 export const useDataSourcesStore = defineStore('datasources', () => {
@@ -169,6 +170,24 @@ export const useDataSourcesStore = defineStore('datasources', () => {
   }
 
   /**
+   * Preview CSV data without creating a datasource
+   */
+  async function previewCSV(file: File): Promise<PreviewDataResponse> {
+    loading.value = true;
+    error.value = null;
+    try {
+      const preview = await apiService.previewCSV(file);
+      return preview;
+    } catch (err) {
+      error.value =
+        err instanceof Error ? err.message : 'Failed to preview CSV data';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
    * Set the current datasource
    */
   function setCurrentDataSource(dataSource: DataSourceMetadata | null): void {
@@ -206,6 +225,7 @@ export const useDataSourcesStore = defineStore('datasources', () => {
     uploadDataSource,
     deleteDataSource,
     queryDataSourceData,
+    previewCSV,
     setCurrentDataSource,
     clearError,
     $reset,
