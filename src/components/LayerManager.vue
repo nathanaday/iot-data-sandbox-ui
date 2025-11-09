@@ -8,11 +8,13 @@ import {
     MenubarContent,
     MenubarItem,
 } from '@/components/ui/menubar';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { Icon } from '@iconify/vue';
 import { useLayersStore } from '@/stores/layers';
 import { useProjectsStore } from '@/stores/projects';
@@ -31,6 +33,12 @@ const MIN_WIDTH = 178;
 const layerMetadata = ref<Map<number, DataSourceMetadata>>(new Map());
 const loadingMetadata = ref<Set<number>>(new Set());
 const failedMetadata = ref<Set<number>>(new Set());
+
+// Track selected layers
+const selectedLayers = ref<Set<number>>(new Set());
+
+// Delete confirmation dialog
+const showDeleteDialog = ref(false);
 
 // Color palettes
 const colorThemes = [
@@ -58,14 +66,37 @@ const projectLayers = computed(() => {
     return [...layers].sort((a, b) => a.z_index - b.z_index);
 });
 
-const handleAddLayer = () => {
-    // TODO
-    console.log('Add Layer clicked');
+const handleDeleteLayers = () => {
+    // Show confirmation dialog
+    showDeleteDialog.value = true;
 };
 
-const handleSelectLayers = () => {
-    // TODO
-    console.log('Select Layers clicked');
+const confirmDeleteLayers = async () => {
+    const layerIds = Array.from(selectedLayers.value);
+    console.log('Deleting layers:', layerIds);
+    
+    try {
+        // Delete all selected layers
+        await Promise.all(
+            layerIds.map(layerId => layersStore.deleteLayer(layerId))
+        );
+        
+        // Clear selection after successful deletion
+        selectedLayers.value.clear();
+        showDeleteDialog.value = false;
+        console.log('Layers deleted successfully');
+    } catch (error) {
+        console.error('Failed to delete layers:', error);
+        showDeleteDialog.value = false;
+    }
+};
+
+const cancelDeleteLayers = () => {
+    showDeleteDialog.value = false;
+};
+
+const handleFlattenLayers = () => {
+    console.log('Flatten layers selected');
 };
 
 const handleColorChange = async (layer: LayerResponse, newColor: string) => {
@@ -83,6 +114,16 @@ const handleVisibilityToggle = async (layer: LayerResponse, checked: boolean) =>
         console.error('Failed to update layer visibility:', error);
         // Revert optimistic update on error by refetching the layer
         await layersStore.fetchLayer(layer.data_layer_id);
+    }
+};
+
+const handleCardClick = (layerId: number) => {
+    if (selectedLayers.value.has(layerId)) {
+        selectedLayers.value.delete(layerId);
+        console.log(`Layer ${layerId} deselected`);
+    } else {
+        selectedLayers.value.add(layerId);
+        console.log(`Layer ${layerId} selected`);
     }
 };
 
@@ -166,42 +207,65 @@ onUnmounted(() => {
 
 <template>
     <Card ref="cardRef" class="h-full p-0 gap-0">
-        <!-- Desktop Menubar (visible when width >= 178px) -->
-        <Menubar v-if="!isNarrow" class="border-0 rounded-t-xl rounded-b-none border-b mb-4">
+
+        <!-- No layers selected (dummy menu bar)-->
+        <Menubar v-if="selectedLayers.size == 0" class="border-0 rounded-t-xl rounded-b-none border-b mb-4">
+        </Menubar>
+
+        <!-- Layers selected and not narrow -->
+        <Menubar v-if="selectedLayers.size > 0 && !isNarrow" class="border-0 rounded-t-xl rounded-b-none border-b mb-4">
+            <!-- Selection count display (non-interactive) -->
+            <div class="flex items-center px-3 text-sm font-medium text-muted-foreground">
+                <Icon icon="material-symbols:checklist" class="mr-1.5" />
+                {{ selectedLayers.size }} selected
+            </div>
+            <!-- Delete Layers -->
             <MenubarMenu>
-                <MenubarTrigger @click="handleAddLayer">
-                    <Icon icon="material-symbols:add" class="mr-1" />
-                    Add Layer
+                <MenubarTrigger @click="handleDeleteLayers">
+                    <Icon icon="material-symbols:delete-outline" class="mr-1" />
+                    Delete
                 </MenubarTrigger>
             </MenubarMenu>
-            <MenubarMenu>
-                <MenubarTrigger @click="handleSelectLayers">
-                    <Icon icon="material-symbols:checklist" class="mr-1" />
-                    Select
+            <!-- Flatten Layers (only when 2+ layers selected) -->
+            <MenubarMenu v-if="selectedLayers.size >= 2">
+                <MenubarTrigger @click="handleFlattenLayers">
+                    <Icon icon="material-symbols:layers-outline" class="mr-1" />
+                    Flatten
                 </MenubarTrigger>
             </MenubarMenu>
         </Menubar>
 
-        <!-- Mobile Hamburger Menu (visible when width < 178px) -->
-        <Menubar v-else class="border-0 rounded-t-xl rounded-b-none border-b mb-4">
+        <!-- Mobile MenuBar with dropdown (visible when width < 178px and layers selected) -->
+        <Menubar v-else-if="selectedLayers.size > 0 && isNarrow" class="border-0 rounded-t-xl rounded-b-none border-b mb-4">
+            <!-- Selection count display (non-interactive) -->
+            <div class="flex items-center px-2 text-sm font-medium text-muted-foreground">
+                <Icon icon="material-symbols:checklist" class="mr-1" />
+                {{ selectedLayers.size }}
+            </div>
             <MenubarMenu>
                 <MenubarTrigger>
                     <Icon icon="material-symbols:menu" />
                 </MenubarTrigger>
                 <MenubarContent>
-                    <MenubarItem @click="handleAddLayer">
-                        <Icon icon="material-symbols:add" class="mr-2" />
-                        Add Layer
+                    <MenubarItem @click="handleDeleteLayers">
+                        <Icon icon="material-symbols:delete-outline" class="mr-2" />
+                        Delete
                     </MenubarItem>
-                    <MenubarItem @click="handleSelectLayers">
-                        <Icon icon="material-symbols:checklist" class="mr-2" />
-                        Select
+                    <MenubarItem v-if="selectedLayers.size >= 2" @click="handleFlattenLayers">
+                        <Icon icon="material-symbols:layers-outline" class="mr-2" />
+                        Flatten
                     </MenubarItem>
                 </MenubarContent>
             </MenubarMenu>
         </Menubar>
+        <CardHeader>
+            <CardDescription>
+                <!-- Layer count -->
+                {{ projectLayers.length }} layer{{ projectLayers.length !== 1 ? 's' : '' }}
+            </CardDescription>
+        </CardHeader>
 
-        <CardContent class="space-y-3 overflow-y-auto max-h-[calc(100vh-300px)]">
+        <CardContent class="px-2 py-0 my-0 space-y-3 overflow-y-auto max-h-[calc(100vh-300px)]">
             <!-- Empty state -->
             <div v-if="projectLayers.length === 0" class="text-center py-8 text-muted-foreground">
                 <Icon icon="material-symbols:layers-outline" class="mx-auto mb-2 text-4xl opacity-50" />
@@ -212,13 +276,15 @@ onUnmounted(() => {
             <Card 
                 v-for="layer in projectLayers" 
                 :key="layer.data_layer_id"
-                class="border-2 hover:border-gray-300 transition-colors min-w-[240px]"
+                class="border-2 transition-colors min-w-[240px] cursor-pointer"
+                :class="selectedLayers.has(layer.data_layer_id) ? 'border-blue-500 hover:border-blue-600' : 'border-gray-200 hover:border-gray-300'"
+                @click="handleCardClick(layer.data_layer_id)"
             >
                 <div class="px-4 py-0">
                     <div class="flex items-center gap-2">
                         <!-- Color picker -->
                         <Popover>
-                            <PopoverTrigger as-child>
+                            <PopoverTrigger as-child @click.stop>
                                 <button
                                     :style="{ backgroundColor: layer.color }"
                                     class="w-6 h-6 rounded-sm cursor-pointer flex-shrink-0 border-2 border-gray-300 hover:border-gray-400 transition-colors"
@@ -257,7 +323,7 @@ onUnmounted(() => {
                         <!-- Spacer -->
                         <div class="flex-grow"></div>
                         <!-- Visibility toggle -->
-                        <div class="flex items-center gap-2 flex-shrink-0">
+                        <div class="flex items-center gap-2 flex-shrink-0" @click.stop>
                             <Switch
                                 :id="`visibility-${layer.data_layer_id}`"
                                 :model-value="layer.is_visible"
@@ -321,5 +387,27 @@ onUnmounted(() => {
             </Card>
         </CardContent>
     </Card>
+
+    <!-- Delete Confirmation Dialog -->
+    <Dialog v-model:open="showDeleteDialog">
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Delete Layer{{ selectedLayers.size > 1 ? 's' : '' }}?</DialogTitle>
+                <DialogDescription>
+                    Are you sure you want to delete {{ selectedLayers.size > 1 ? 'these' : 'this' }} 
+                 layer{{ selectedLayers.size > 1 ? 's' : '' }}? 
+                    This action cannot be undone.
+                </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+                <Button variant="outline" @click="cancelDeleteLayers">
+                    Cancel
+                </Button>
+                <Button variant="destructive" @click="confirmDeleteLayers">
+                    Delete
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
 
 </template>
