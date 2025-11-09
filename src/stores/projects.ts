@@ -115,7 +115,7 @@ export const useProjectsStore = defineStore('projects', () => {
       // If the deleted project was selected, select another project or set to null
       if (selectedProjectId.value === id) {
         if (projects.value.length > 0) {
-          selectedProjectId.value = projects.value[0].project_id;
+          selectedProjectId.value = projects.value[0]?.project_id || null;
         } else {
           selectedProjectId.value = null;
         }
@@ -159,6 +159,15 @@ export const useProjectsStore = defineStore('projects', () => {
   function setSelectedProjectId(id: number | null): void {
     const previousId = selectedProjectId.value;
     selectedProjectId.value = id;
+    
+    // Update currentProject when selectedProjectId changes
+    if (id !== null) {
+      const project = projects.value.find(p => p.project_id === id);
+      currentProject.value = project || null;
+    } else {
+      currentProject.value = null;
+    }
+    
     // Clear selected layer when project changes
     if (id === null || id !== previousId) {
       selectedLayerId.value = null;

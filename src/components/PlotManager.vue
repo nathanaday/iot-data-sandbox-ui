@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { Icon } from '@iconify/vue';
 import {
     Menubar,
     MenubarCheckboxItem,
@@ -27,14 +28,14 @@ const showManageProjectsModal = ref(false);
                 <MenubarTrigger>Project</MenubarTrigger>
                 <MenubarContent>
                     <MenubarItem @click="showNewProjectModal = true">
-                        New Project <MenubarShortcut>⌘N</MenubarShortcut>
+                        New Project <MenubarShortcut><Icon icon="material-symbols:add" /></MenubarShortcut>
                     </MenubarItem>
                     <MenubarItem @click="showOpenProjectModal = true">
-                        Open Project <MenubarShortcut>⌘O</MenubarShortcut>
+                        Open Project <MenubarShortcut><Icon icon="material-symbols:folder-open" /></MenubarShortcut>
                     </MenubarItem>
                     <MenubarSeparator />
                     <MenubarItem @click="showManageProjectsModal = true">
-                        Manage Projects <MenubarShortcut>⌘M</MenubarShortcut>
+                        Manage Projects <MenubarShortcut><Icon icon="material-symbols:settings" /></MenubarShortcut>
                     </MenubarItem>
                 </MenubarContent>
             </MenubarMenu>

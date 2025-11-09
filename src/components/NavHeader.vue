@@ -8,10 +8,14 @@ import {
     NavigationMenuTrigger,
     navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
+import { computed } from "vue"
 
 import { Kbd } from "@/components/ui/kbd"
-
 import githubMark from "@/assets/github-mark.svg"
+
+import { useProjectsStore } from "@/stores/projects"
+const projectsStore = useProjectsStore()
+const currentProject = computed(() => projectsStore.currentProject?.name)
 
 const contribute_links: { title: string, icon: string, href: string, description: string }[] = [
     {
@@ -51,7 +55,6 @@ const contribute_links: { title: string, icon: string, href: string, description
                                 TODO
                             </NavigationMenuItem>
                         </li>
-
                     </ul>
                 </NavigationMenuContent>
             </NavigationMenuItem>
@@ -80,6 +83,10 @@ const contribute_links: { title: string, icon: string, href: string, description
             </NavigationMenuItem>
         </NavigationMenuList>
 
+
+        <div class="px-4">
+            <div class="text-sm font-medium leading-none text-gray-600">{{ currentProject ? currentProject : "No Project Selected" }}</div>
+        </div>
         
         <div class="flex-1"></div>
         <div class="flex items-center h-full px-4 gap-4">
