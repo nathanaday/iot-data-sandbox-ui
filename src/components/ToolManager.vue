@@ -60,7 +60,7 @@ watch(tools, (newTools) => {
         </Menubar>
         <CardHeader>
             <CardDescription>
-                {{ tools.length }} tool{{ tools.length !== 1 ? 's' : '' }}
+                Tool Manager - {{ tools.length }} tool{{ tools.length !== 1 ? 's' : '' }}
             </CardDescription>
         </CardHeader>
 
@@ -84,7 +84,7 @@ watch(tools, (newTools) => {
                         <div class="flex-shrink-0">
                             <Icon
                                 :icon="getCategoryIcon(tool.category)"
-                                class="text-2xl text-blue-600"
+                                class="text-2xl text-gray-600"
                             />
                         </div>
                         <!-- Title -->

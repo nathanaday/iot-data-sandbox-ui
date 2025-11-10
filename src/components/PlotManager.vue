@@ -373,16 +373,20 @@ onMounted(() => {
                         </Button>
                     </div>
                     <div>
-                        <p class="font-semibold text-md">Don't have your own data yet? Load one of the demo projects below:</p>
+                        <p class="font-semibold text-md">Or try a demo project:</p>
                     </div>
-                    <div class="flex gap-3 justify-center">
-                        <Button variant="outline" style="background-color: #2F82E0; color: white; border-color: #2F82E0;">
-                            <Icon icon="material-symbols:add" class="w-4 h-4 mr-2" />
-                            Power Consumption
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        <Button variant="outline" style="border-color: #2F82E0; color: #2F82E0;">
+                            <Icon icon="material-symbols:factory" class="w-4 h-4 mr-2" />
+                            Power Utility Production
                         </Button>
-                        <Button variant="outline" style="background-color: #F479FF; color: white; border-color: #F479FF;">
-                            <Icon icon="material-symbols:folder-open" class="w-4 h-4 mr-2" />
-                            Tides
+                        <Button variant="outline" style="border-color: #927EF0; color: #927EF0;">
+                            <Icon icon="material-symbols:eco" class="w-4 h-4 mr-2" />
+                            CO2 Emissions
+                        </Button>
+                        <Button variant="outline" style="border-color: #F479FF; color: #F479FF;">
+                            <Icon icon="material-symbols:wifi" class="w-4 h-4 mr-2" />
+                            Smoke, Temp, Humidity Sensor
                         </Button>
                     </div>
                 </div>

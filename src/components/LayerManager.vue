@@ -261,7 +261,7 @@ onUnmounted(() => {
         <CardHeader>
             <CardDescription>
                 <!-- Layer count -->
-                {{ projectLayers.length }} layer{{ projectLayers.length !== 1 ? 's' : '' }}
+                Layer Manager - {{ projectLayers.length }} layer{{ projectLayers.length !== 1 ? 's' : '' }}
             </CardDescription>
         </CardHeader>
 
