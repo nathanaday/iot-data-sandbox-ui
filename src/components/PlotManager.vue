@@ -31,6 +31,7 @@ import {
     type ChartData,
 } from 'chart.js';
 import 'chartjs-adapter-date-fns';
+import zoomPlugin from 'chartjs-plugin-zoom';
 
 // Register Chart.js components
 ChartJS.register(
@@ -41,12 +42,25 @@ ChartJS.register(
     Title,
     Tooltip,
     Legend,
-    TimeScale
+    TimeScale,
+    zoomPlugin
 );
 
 const showNewProjectModal = ref(false);
 const showOpenProjectModal = ref(false);
 const showManageProjectsModal = ref(false);
+
+// IGNORE FOR NOW - NEXT PHASE OF IMPROVEMENTS WILL MAKE USE OF THIS
+// Dummy variables for View options layout
+const showXAxisGrid = ref(true);
+const showYAxisGrid = ref(true);
+const showLegend = ref(true);
+const showTooltip = ref(true);
+const lineStyle = ref('solid');
+const lineWidth = ref(2);
+const tension = ref(0.1);
+// END OF IGNORE FOR NOW - NEXT PHASE OF IMPROVEMENTS WILL MAKE USE OF THIS
+
 
 // Store access
 const projectsStore = useProjectsStore();
@@ -88,6 +102,27 @@ const chartOptions = ref<ChartOptions<'line'>>({
                 },
             },
         },
+        zoom: {
+            zoom: {
+                wheel: {
+                    enabled: true,
+                },
+                pinch: {
+                    enabled: true,
+                },
+                mode: 'xy',
+                onZoomComplete: () => {
+                    isZoomed.value = true;
+                },
+            },
+            pan: {
+                enabled: true,
+                mode: 'xy',
+                onPanComplete: () => {
+                    isZoomed.value = true;
+                },
+            },
+        },
     },
     scales: {
         x: {
@@ -115,6 +150,8 @@ const chartOptions = ref<ChartOptions<'line'>>({
 const isLoading = ref(false);
 const errorMessage = ref<string | null>(null);
 const hasData = computed(() => chartData.value.datasets.length > 0);
+const chartRef = ref<any>(null);
+const isZoomed = ref(false);
 
 // Fetch and load chart data
 async function loadChartData() {
@@ -226,6 +263,14 @@ watch(
     { deep: true }
 );
 
+// Reset zoom function
+function resetZoom() {
+    if (chartRef.value?.chart) {
+        chartRef.value.chart.resetZoom();
+        isZoomed.value = false;
+    }
+}
+
 // Load data on mount
 onMounted(() => {
     loadChartData();
@@ -252,13 +297,29 @@ onMounted(() => {
                 </MenubarContent>
             </MenubarMenu>
             <MenubarMenu>
-                <MenubarTrigger>Edit</MenubarTrigger>
+                <MenubarTrigger>View</MenubarTrigger>
                 <MenubarContent>
                     <MenubarItem>
-                        Undo <MenubarShortcut>⌘Z</MenubarShortcut>
+                        X-Axis Grid <MenubarShortcut>{{ showXAxisGrid ? 'Hide' : 'Show' }}</MenubarShortcut>
                     </MenubarItem>
                     <MenubarItem>
-                        Redo <MenubarShortcut>⇧⌘Z</MenubarShortcut>
+                        Y-Axis Grid <MenubarShortcut>{{ showYAxisGrid ? 'Hide' : 'Show' }}</MenubarShortcut>
+                    </MenubarItem>
+                    <MenubarItem>
+                        Legend <MenubarShortcut>{{ showLegend ? 'Hide' : 'Show' }}</MenubarShortcut>
+                    </MenubarItem>
+                    <MenubarItem>
+                        Tooltip <MenubarShortcut>{{ showTooltip ? 'Hide' : 'Show' }}</MenubarShortcut>
+                    </MenubarItem>
+                    <MenubarSeparator />
+                    <MenubarItem>
+                        Line Style <MenubarShortcut>{{ lineStyle }}</MenubarShortcut>
+                    </MenubarItem>
+                    <MenubarItem>
+                        Line Width <MenubarShortcut>{{ lineWidth }}</MenubarShortcut>
+                    </MenubarItem>
+                    <MenubarItem>
+                        Line Tension <MenubarShortcut>{{ tension }}</MenubarShortcut>
                     </MenubarItem>
                 </MenubarContent>
             </MenubarMenu>
@@ -298,8 +359,8 @@ onMounted(() => {
                 <div class="text-center text-muted-foreground space-y-6">
                     <div>
                         <Icon icon="material-symbols:folder-open-outline" class="w-16 h-16 mx-auto mb-4" />
-                        <p class="font-semibold text-lg mb-2">No project selected</p>
-                        <p class="text-sm">Open or create a project to start visualizing data</p>
+                        <!-- <p class="font-semibold text-lg mb-2">No project selected</p> -->
+                        <p class="font-semibold text-md">Open or create a project to start visualizing data</p>
                     </div>
                     <div class="flex gap-3 justify-center">
                         <Button @click="showNewProjectModal = true" variant="outline">
@@ -309,6 +370,19 @@ onMounted(() => {
                         <Button @click="showOpenProjectModal = true" variant="outline">
                             <Icon icon="material-symbols:folder-open" class="w-4 h-4 mr-2" />
                             Select Project
+                        </Button>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-md">Don't have your own data yet? Load one of the demo projects below:</p>
+                    </div>
+                    <div class="flex gap-3 justify-center">
+                        <Button variant="outline" style="background-color: #2F82E0; color: white; border-color: #2F82E0;">
+                            <Icon icon="material-symbols:add" class="w-4 h-4 mr-2" />
+                            Power Consumption
+                        </Button>
+                        <Button variant="outline" style="background-color: #F479FF; color: white; border-color: #F479FF;">
+                            <Icon icon="material-symbols:folder-open" class="w-4 h-4 mr-2" />
+                            Tides
                         </Button>
                     </div>
                 </div>
@@ -324,8 +398,15 @@ onMounted(() => {
             </div>
 
             <!-- Chart Display -->
-            <div v-else-if="hasData" class="h-96">
-                <Line :data="chartData" :options="chartOptions" />
+            <div v-else-if="hasData" class="relative h-96">
+                <!-- Reset Zoom Button -->
+                <div v-if="isZoomed" class="absolute top-0 right-2 z-10">
+                    <Button @click="resetZoom" variant="outline" size="sm">
+                        <Icon icon="material-symbols:zoom-out-map" class="w-4 h-4 mr-1" />
+                        Reset Zoom
+                    </Button>
+                </div>
+                <Line ref="chartRef" :data="chartData" :options="chartOptions" />
             </div>
 
             <!-- No Data State (layers exist but no data loaded) -->

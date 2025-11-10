@@ -157,14 +157,15 @@ export const useLayersStore = defineStore('layers', () => {
   ): Promise<LayerResponse> {
     // Optimistic update - immediately update local state
     const index = layers.value.findIndex(l => l.data_layer_id === id);
-    const previousState = index !== -1 ? { ...layers.value[index] } : null;
+    const layerToUpdate = index !== -1 ? layers.value[index] : null;
+    const previousVisibility = layerToUpdate?.is_visible;
     
-    if (index !== -1) {
-      layers.value[index] = { ...layers.value[index], is_visible: isVisible };
+    if (layerToUpdate) {
+      layerToUpdate.is_visible = isVisible;
     }
     
     if (currentLayer.value?.data_layer_id === id) {
-      currentLayer.value = { ...currentLayer.value, is_visible: isVisible };
+      currentLayer.value.is_visible = isVisible;
     }
 
     loading.value = true;
@@ -185,12 +186,12 @@ export const useLayersStore = defineStore('layers', () => {
       return layer;
     } catch (err) {
       // Revert optimistic update on error
-      if (previousState && index !== -1) {
-        layers.value[index] = previousState;
+      if (layerToUpdate && previousVisibility !== undefined) {
+        layerToUpdate.is_visible = previousVisibility;
       }
       
-      if (currentLayer.value?.data_layer_id === id && previousState) {
-        currentLayer.value = previousState;
+      if (currentLayer.value?.data_layer_id === id && previousVisibility !== undefined) {
+        currentLayer.value.is_visible = previousVisibility;
       }
       
       error.value =
