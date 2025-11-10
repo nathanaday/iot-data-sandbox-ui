@@ -21,6 +21,7 @@ import type {
   UpdateVisibilityRequest,
   DuplicateLayerRequest,
   PreviewDataResponse,
+  ToolManifest,
 } from './types';
 import { apiConfig } from './config';
 
@@ -387,6 +388,21 @@ export class ApiService {
           'Content-Type': 'multipart/form-data',
         },
       }
+    );
+    return response.data;
+  }
+
+  // ============================
+  // TOOLS ENDPOINTS
+  // ============================
+
+  /**
+   * Get all tool manifests
+   * GET /api/tools
+   */
+  async getToolManifests(): Promise<ToolManifest[]> {
+    const response = await this.axiosInstance.get<ToolManifest[]>(
+      '/api/tools'
     );
     return response.data;
   }

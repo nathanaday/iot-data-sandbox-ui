@@ -23,6 +23,9 @@ export type {
   UpdateVisibilityRequest,
   DuplicateLayerRequest,
   PreviewDataResponse,
+  ParameterDefinition,
+  ToolManifest,
+  ToolManifestListResponse,
 } from './types';
 
 // Export client and utilities

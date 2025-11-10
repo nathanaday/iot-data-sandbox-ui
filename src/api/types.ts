@@ -164,3 +164,32 @@ export interface PreviewDataResponse {
   value_label: string;
 }
 
+/**
+ * Parameter definition for a tool
+ */
+export interface ParameterDefinition {
+  name: string;
+  type: string;
+  description: string;
+  required: boolean;
+}
+
+/**
+ * Tool manifest describing a registered tool
+ */
+export interface ToolManifest {
+  name: string;
+  description: string;
+  category: string;
+  documentation: string;
+  parameters: ParameterDefinition[];
+  examples?: string[];
+}
+
+/**
+ * Response from listing all tool manifests
+ */
+export interface ToolManifestListResponse {
+  tools: ToolManifest[];
+}
+
