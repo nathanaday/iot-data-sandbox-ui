@@ -12,6 +12,9 @@ import {
 } from '@/components/ui/menubar';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Slider } from '@/components/ui/slider';
+import { Label } from '@/components/ui/label';
 import ModalNewProject from '@/components/ModalNewProject.vue';
 import ModalManageProjects from '@/components/ModalManageProjects.vue';
 import { useProjectsStore } from '@/stores/projects';
@@ -100,6 +103,12 @@ const chartOptions = ref<ChartOptions<'line'>>({
                     const value = context.parsed.y !== null ? context.parsed.y.toFixed(2) : 'N/A';
                     return `${label}: ${value}`;
                 },
+                footer: (items) => {
+                    if (isDecimationActive.value) {
+                        return [`Downsampled: ${renderedDataPoints.value.toLocaleString()}/${rawDataPoints.value.toLocaleString()} pts (${((renderedDataPoints.value / rawDataPoints.value) * 100).toFixed(1)}%)`];
+                    }
+                    return [];
+                },
             },
         },
         zoom: {
@@ -128,20 +137,37 @@ const chartOptions = ref<ChartOptions<'line'>>({
         x: {
             type: 'time',
             time: {
-                unit: 'month',
                 displayFormats: {
+                    millisecond: 'HH:mm:ss.SSS',
+                    second: 'HH:mm:ss',
+                    minute: 'HH:mm',
+                    hour: 'MMM d, HH:mm',
+                    day: 'MMM d',
+                    week: 'MMM d',
                     month: 'MMM yyyy',
+                    quarter: 'MMM yyyy',
+                    year: 'yyyy',
                 },
+                tooltipFormat: 'MMM d, yyyy HH:mm:ss',
             },
             title: {
                 display: true,
                 text: 'Time',
+            },
+            ticks: {
+                autoSkip: true,
+                maxTicksLimit: 10,
             },
         },
         y: {
             title: {
                 display: true,
                 text: 'Value',
+            },
+            ticks: {
+                callback: function(value) {
+                    return value.toLocaleString();
+                },
             },
         },
     },
@@ -153,17 +179,109 @@ const hasData = computed(() => chartData.value.datasets.length > 0);
 const chartRef = ref<any>(null);
 const isZoomed = ref(false);
 
+// Track raw vs rendered data points
+const rawDataPoints = ref(0);
+const renderedDataPoints = ref(0);
+
+// Sampling rate control (points per layer)
+const samplingRate = ref([500]); // Slider component needs array format
+const samplingRateValue = computed(() => samplingRate.value[0] ?? 500);
+
+// Presets for quick selection
+const samplingPresets = [
+    { label: 'Low', value: 250, description: '250 pts/layer' },
+    { label: 'Medium', value: 500, description: '500 pts/layer' },
+    { label: 'High', value: 1000, description: '1,000 pts/layer' },
+    { label: 'Max', value: 2500, description: '2,500 pts/layer' },
+];
+
+// Compute total data points across all visible layers
+const totalDataPoints = computed(() => {
+    return chartData.value.datasets.reduce((sum, dataset) => {
+        return sum + (dataset.data?.length || 0);
+    }, 0);
+});
+
+// Check if decimation is active
+const isDecimationActive = computed(() => {
+    return rawDataPoints.value > renderedDataPoints.value;
+});
+
+// LTTB (Largest Triangle Three Buckets) downsampling algorithm
+function downsampleLTTB(data: Array<{x: number, y: number}>, threshold: number): Array<{x: number, y: number}> {
+    if (data.length === 0 || data.length <= threshold) {
+        return data;
+    }
+
+    const sampled: Array<{x: number, y: number}> = [];
+    const bucketSize = (data.length - 2) / (threshold - 2);
+
+    // Always add the first point
+    sampled.push(data[0]!);
+
+    let a = 0;
+    for (let i = 0; i < threshold - 2; i++) {
+        const avgRangeStart = Math.floor((i + 1) * bucketSize) + 1;
+        const avgRangeEnd = Math.floor((i + 2) * bucketSize) + 1;
+        const avgRangeLength = avgRangeEnd - avgRangeStart;
+
+        let avgX = 0;
+        let avgY = 0;
+
+        for (let j = avgRangeStart; j < avgRangeEnd && j < data.length; j++) {
+            avgX += data[j]!.x;
+            avgY += data[j]!.y;
+        }
+        avgX /= avgRangeLength;
+        avgY /= avgRangeLength;
+
+        const rangeStart = Math.floor(i * bucketSize) + 1;
+        const rangeEnd = Math.floor((i + 1) * bucketSize) + 1;
+
+        const pointA = data[a]!;
+        let maxArea = -1;
+        let maxAreaPoint = data[rangeStart]!;
+
+        for (let j = rangeStart; j < rangeEnd && j < data.length; j++) {
+            const area = Math.abs(
+                (pointA.x - avgX) * (data[j]!.y - pointA.y) -
+                (pointA.x - data[j]!.x) * (avgY - pointA.y)
+            ) * 0.5;
+
+            if (area > maxArea) {
+                maxArea = area;
+                maxAreaPoint = data[j]!;
+                a = j;
+            }
+        }
+
+        sampled.push(maxAreaPoint);
+    }
+
+    // Always add the last point
+    sampled.push(data[data.length - 1]!);
+
+    return sampled;
+}
+
 // Fetch and load chart data
 async function loadChartData() {
     if (!currentProject.value || projectLayers.value.length === 0) {
         chartData.value = { datasets: [] };
+        rawDataPoints.value = 0;
+        renderedDataPoints.value = 0;
         return;
     }
 
     isLoading.value = true;
     errorMessage.value = null;
 
+    const MAX_POINTS_PER_LAYER = samplingRateValue.value; // Use dynamic sampling rate
+
     try {
+        let totalRaw = 0;
+        let totalRendered = 0;
+
         const datasets = await Promise.all(
             projectLayers.value.map(async (layer) => {
                 try {
@@ -172,12 +290,20 @@ async function loadChartData() {
                     if (!response) {
                         response = await layersStore.fetchLayerData(layer.data_layer_id);
                     }
-                    
+
                     // Transform data to Chart.js format
-                    const data = response.data.map((point) => ({
+                    const rawData = response.data.map((point) => ({
                         x: new Date(point.timestamp).getTime(),
                         y: point.value,
                     }));
+
+                    totalRaw += rawData.length;
+
+                    // Apply LTTB downsampling
+                    const data = downsampleLTTB(rawData, MAX_POINTS_PER_LAYER);
+                    totalRendered += data.length;
+
+                    console.log(`[Chart] Layer "${layer.name}": ${rawData.length} pts → ${data.length} pts (${((data.length / rawData.length) * 100).toFixed(1)}% retained)`);
 
                     return {
                         label: layer.name,
@@ -185,8 +311,8 @@ async function loadChartData() {
                         borderColor: layer.color,
                         backgroundColor: layer.color + '33', // Add transparency
                         borderWidth: 2,
-                        pointRadius: 2,
-                        pointHoverRadius: 5,
+                        pointRadius: 1,
+                        pointHoverRadius: 4,
                         tension: 0.1,
                         hidden: !layer.is_visible,
                     };
@@ -200,10 +326,16 @@ async function loadChartData() {
             })
         );
 
+        // Update tracking counters
+        rawDataPoints.value = totalRaw;
+        renderedDataPoints.value = totalRendered;
+
         // Filter out any failed layer data fetches
         chartData.value = {
             datasets: datasets.filter((ds) => ds !== null) as any[],
         };
+
+        console.log(`[Chart] Total: ${totalRaw} pts → ${totalRendered} pts (${((totalRendered / totalRaw) * 100).toFixed(1)}% retained)`);
     } catch (error) {
         errorMessage.value = error instanceof Error ? error.message : 'Failed to load chart data';
         console.error('Error loading chart data:', error);
@@ -223,6 +355,13 @@ watch(
     },
     { deep: true }
 );
+
+// Watch for sampling rate changes - reload data
+watch(samplingRateValue, () => {
+    if (currentProject.value && projectLayers.value.length > 0) {
+        loadChartData();
+    }
+});
 
 // Watch for layer visibility changes and update chart without reloading data
 watch(
@@ -402,14 +541,73 @@ onMounted(() => {
             </div>
 
             <!-- Chart Display -->
-            <div v-else-if="hasData" class="relative h-96">
-                <!-- Reset Zoom Button -->
+            <div v-else-if="hasData" class="relative h-96 py-4">
+                <!-- Bottom-left decimation indicator with popover -->
+                <Popover v-if="isDecimationActive">
+                    <PopoverTrigger as-child>
+                        <button
+                            class="absolute bottom-0 left-0 z-10 px-2 py-1 text-xs rounded-md bg-primary/10 text-primary border border-primary/20 flex items-center gap-1 hover:bg-primary/20 transition-colors cursor-pointer"
+                            :title="`Click to adjust sampling rate. Showing ${renderedDataPoints.toLocaleString()} of ${rawDataPoints.toLocaleString()} data points (${((renderedDataPoints / rawDataPoints) * 100).toFixed(1)}% retained)`">
+                            <Icon icon="material-symbols:tune" class="w-3 h-3" />
+                            <span>{{ renderedDataPoints.toLocaleString() }} / {{ rawDataPoints.toLocaleString() }} pts</span>
+                        </button>
+                    </PopoverTrigger>
+                    <PopoverContent class="w-80" side="top" align="start">
+                        <div class="space-y-4">
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <Label class="text-sm font-semibold">Sample Rate</Label>
+                                    <span class="text-xs text-muted-foreground">{{ samplingRateValue.toLocaleString() }} pts/layer</span>
+                                </div>
+                                <!-- <Slider
+                                    v-model="samplingRate"
+                                    :min="100"
+                                    :max="2000"
+                                    :step="50"
+                                    class="w-full"
+                                /> -->
+                                <p class="text-xs text-muted-foreground">
+                                    Adjust the number of points displayed per layer. Lower values improve performance.
+                                </p>
+                            </div>
+
+                            <div class="space-y-2 py-2">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <Button
+                                        v-for="preset in samplingPresets"
+                                        :key="preset.value"
+                                        variant="outline"
+                                        size="sm"
+                                        class="py-1 h-full"
+                                        :class="{ 'border-primary bg-primary/10': samplingRateValue === preset.value }"
+                                        @click="samplingRate = [preset.value]"
+                                    >
+                                        <div class="text-left">
+                                            <div class="font-medium">{{ preset.label }}</div>
+                                            <div class="text-xs text-muted-foreground">{{ preset.description }}</div>
+                                        </div>
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <div class="pt-2 border-t text-xs text-muted-foreground">
+                                <div class="flex items-center gap-1">
+                                    <Icon icon="material-symbols:info-outline" class="w-3 h-3" />
+                                    <span>Current: {{ renderedDataPoints.toLocaleString() }} / {{ rawDataPoints.toLocaleString() }} total points</span>
+                                </div>
+                            </div>
+                        </div>
+                    </PopoverContent>
+                </Popover>
+
+                <!-- Top-right reset zoom button -->
                 <div v-if="isZoomed" class="absolute top-0 right-2 z-10">
                     <Button @click="resetZoom" variant="outline" size="sm">
                         <Icon icon="material-symbols:zoom-out-map" class="w-4 h-4 mr-1" />
                         Reset Zoom
                     </Button>
                 </div>
+
                 <Line ref="chartRef" :data="chartData" :options="chartOptions" />
             </div>
 

@@ -23,7 +23,7 @@ export function getApiBaseUrl(): string {
  */
 export const apiConfig = {
   baseUrl: getApiBaseUrl(),
-  timeout: 30000, // 30 seconds
+  timeout: 300000, // 5 minutes (increased for large CSV uploads)
 };
 
 /**

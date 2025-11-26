@@ -22,6 +22,8 @@ import type {
   DuplicateLayerRequest,
   PreviewDataResponse,
   ToolManifest,
+  UploadJobResponse,
+  JobStatusResponse,
 } from './types';
 import { apiConfig } from './config';
 
@@ -244,6 +246,50 @@ export class ApiService {
     const response = await this.axiosInstance.post<LayerResponse>(
       `/api/projects/${projectId}/layers`,
       data
+    );
+    return response.data;
+  }
+
+  /**
+   * Load multi-column CSV into project asynchronously (creates multiple layers)
+   * POST /api/projects/{id}/load-csv
+   * Returns a job ID immediately, processing happens in background
+   */
+  async loadProjectCSVAsync(
+    projectId: number,
+    params: UploadParams
+  ): Promise<UploadJobResponse> {
+    const formData = new FormData();
+    formData.append('file', params.file);
+    if (params.name) {
+      formData.append('name', params.name);
+    }
+
+    const response = await this.axiosInstance.post<UploadJobResponse>(
+      `/api/projects/${projectId}/load-csv`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  }
+
+  /**
+   * Check status of an async CSV upload job
+   * GET /api/projects/{id}/load-csv/status?job={job_id}
+   */
+  async getCSVUploadStatus(
+    projectId: number,
+    jobId: string
+  ): Promise<JobStatusResponse> {
+    const response = await this.axiosInstance.get<JobStatusResponse>(
+      `/api/projects/${projectId}/load-csv/status`,
+      {
+        params: { job: jobId },
+      }
     );
     return response.data;
   }

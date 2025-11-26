@@ -193,3 +193,35 @@ export interface ToolManifestListResponse {
   tools: ToolManifest[];
 }
 
+/**
+ * Response from starting an async CSV upload job
+ */
+export interface UploadJobResponse {
+  job_id: string;
+}
+
+/**
+ * Status of a single layer in an upload job
+ */
+export interface LayerStatusDetail {
+  layer_name: string;
+  rows_written: number;
+  total_rows: number;
+  percent_complete: number;
+  status: 'pending' | 'in_progress' | 'success' | 'failed';
+}
+
+/**
+ * Status response for an async CSV upload job
+ */
+export interface JobStatusResponse {
+  job_id: string;
+  project_id: number;
+  status: 'pending' | 'in_progress' | 'success' | 'failed';
+  layers: LayerStatusDetail[];
+  error?: string;
+  created_at: string;
+  updated_at: string;
+  completed_at?: string;
+}
+

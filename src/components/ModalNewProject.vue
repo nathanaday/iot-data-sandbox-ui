@@ -38,6 +38,9 @@ const isLoadingPreview = ref(false)
 const previewError = ref<string | null>(null)
 const isCreating = ref(false)
 const createError = ref<string | null>(null)
+const uploadStatus = ref<string>('')
+const uploadLayers = ref<Array<{ name: string; progress: number; status: string }>>([])
+const showProgress = ref(false)
 
 // Generate random project name
 const generateRandomName = () => {
@@ -110,34 +113,78 @@ const handleCreate = async () => {
     alert('Please select a CSV file')
     return
   }
-  
+
   const finalProjectName = projectName.value.trim() || projectNamePlaceholder.value
   const file = selectedFile.value
-  
+
   isCreating.value = true
   createError.value = null
-  
+  showProgress.value = false
+  uploadLayers.value = []
+  uploadStatus.value = ''
+
+  const totalStartTime = performance.now()
+
   try {
     // Step 1: Create the project
-    console.log('Creating project:', finalProjectName)
+    const projectStartTime = performance.now()
+    console.log('[Frontend] Creating project:', finalProjectName)
+    uploadStatus.value = 'Creating project...'
     const project = await apiService.createProject({ name: finalProjectName })
-    console.log('Project created:', project)
-    
-    // Step 2: Create a layer in the project
-    const layerName = file.name.replace('.csv', '') || 'Data Layer'
-    console.log('Creating layer:', layerName)
-    const layer = await apiService.createLayer(project.project_id, { name: layerName })
-    console.log('Layer created:', layer)
-    
-    // Step 3: Load the CSV data into the layer
-    console.log('Loading CSV data into layer')
-    await apiService.loadLayerCSV(layer.data_layer_id, { file })
-    console.log('CSV data loaded successfully')
-    
+    const projectTime = performance.now() - projectStartTime
+    console.log(`[Frontend] Project created in ${projectTime.toFixed(2)}ms:`, project)
+
+    // Step 2: Start async CSV upload
+    const csvStartTime = performance.now()
+    console.log(`[Frontend] Starting async CSV upload (${(file.size / 1024 / 1024).toFixed(2)} MB)`)
+    uploadStatus.value = 'Starting upload...'
+    const jobResponse = await apiService.loadProjectCSVAsync(project.project_id, { file })
+    console.log(`[Frontend] Upload job created:`, jobResponse.job_id)
+    showProgress.value = true
+
+    // Step 3: Poll for job status
+    let isComplete = false
+    let layerCount = 0
+    while (!isComplete) {
+      await new Promise(resolve => setTimeout(resolve, 500)) // Poll every 500ms
+
+      const status = await apiService.getCSVUploadStatus(project.project_id, jobResponse.job_id)
+      uploadStatus.value = `Uploading data (${status.status})...`
+
+      // Update layer progress
+      uploadLayers.value = status.layers.map(layer => ({
+        name: layer.layer_name,
+        progress: layer.percent_complete,
+        status: layer.status
+      }))
+
+      // Log progress
+      status.layers.forEach(layer => {
+        console.log(`[Frontend] ${layer.layer_name}: ${layer.percent_complete.toFixed(1)}% (${layer.rows_written}/${layer.total_rows} rows)`)
+      })
+
+      if (status.status === 'success') {
+        isComplete = true
+        layerCount = status.layers.length
+        const csvTime = performance.now() - csvStartTime
+        console.log(`[Frontend] CSV upload completed in ${(csvTime / 1000).toFixed(2)}s, created ${layerCount} layer(s)`)
+        uploadStatus.value = 'Upload complete!'
+      } else if (status.status === 'failed') {
+        throw new Error(status.error || 'Upload failed')
+      }
+    }
+
     // Step 4: Load the project with all its data
+    const loadStartTime = performance.now()
+    console.log('[Frontend] Loading project data...')
+    uploadStatus.value = 'Loading project...'
     await projectsStore.loadProject(project.project_id)
-    console.log('Project loaded successfully')
-    
+    const loadTime = performance.now() - loadStartTime
+    console.log(`[Frontend] Project loaded in ${loadTime.toFixed(2)}ms`)
+
+    const totalTime = performance.now() - totalStartTime
+    console.log(`[Frontend] ===== Total time: ${(totalTime / 1000).toFixed(2)}s =====`)
+
     // Success! Reset and close
     selectedFile.value = null
     projectType.value = 'time-series'
@@ -145,11 +192,16 @@ const handleCreate = async () => {
     previewData.value = null
     previewError.value = null
     createError.value = null
+    showProgress.value = false
+    uploadLayers.value = []
+    uploadStatus.value = ''
     open.value = false
-    
+
   } catch (error) {
-    console.error('Error creating project:', error)
+    const totalTime = performance.now() - totalStartTime
+    console.error(`[Frontend] Error after ${(totalTime / 1000).toFixed(2)}s:`, error)
     createError.value = 'Failed to create project. Please try again.'
+    showProgress.value = false
   } finally {
     isCreating.value = false
   }
@@ -365,6 +417,38 @@ const handleCancel = () => {
                 >
                   Remove
                 </Button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Upload Progress -->
+          <div v-if="showProgress" class="space-y-3">
+            <div class="text-sm font-medium">
+              {{ uploadStatus }}
+            </div>
+            <div class="space-y-2">
+              <div
+                v-for="layer in uploadLayers"
+                :key="layer.name"
+                class="p-3 rounded-lg border bg-card"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-sm font-medium">{{ layer.name }}</span>
+                  <span class="text-xs text-muted-foreground">
+                    {{ Math.round(layer.progress) }}%
+                  </span>
+                </div>
+                <div class="w-full bg-secondary rounded-full h-2">
+                  <div
+                    class="h-2 rounded-full transition-all duration-300"
+                    :class="{
+                      'bg-primary': layer.status === 'in_progress',
+                      'bg-green-500': layer.status === 'success',
+                      'bg-destructive': layer.status === 'failed'
+                    }"
+                    :style="{ width: layer.progress + '%' }"
+                  />
+                </div>
               </div>
             </div>
           </div>
