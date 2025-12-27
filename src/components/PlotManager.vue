@@ -497,9 +497,8 @@ onMounted(() => {
             <div v-else-if="!currentProject" class="flex items-center justify-center h-96">
                 <div class="text-center text-muted-foreground space-y-6">
                     <div>
-                        <Icon icon="material-symbols:folder-open-outline" class="w-16 h-16 mx-auto mb-4" />
-                        <!-- <p class="font-semibold text-lg mb-2">No project selected</p> -->
-                        <p class="font-semibold text-md">Open or create a project to start visualizing data</p>
+                        <Icon icon="material-symbols:folder-open-outline" class="text-gray-400 w-16 h-16 mx-auto mb-4" />
+                        <!-- <p class="font-semibold text-md">Open or create a project to start visualizing data</p> -->
                     </div>
                     <div class="flex gap-3 justify-center">
                         <Button @click="showNewProjectModal = true" variant="outline">
@@ -508,7 +507,7 @@ onMounted(() => {
                         </Button>
                         <Button @click="showOpenProjectModal = true" variant="outline">
                             <Icon icon="material-symbols:folder-open" class="w-4 h-4 mr-2" />
-                            Select Project
+                            Open Project
                         </Button>
                     </div>
                     <div>
