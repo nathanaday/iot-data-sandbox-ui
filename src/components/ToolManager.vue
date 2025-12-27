@@ -90,11 +90,11 @@ watch(tools, (newTools) => {
                         <div class="flex-shrink-0">
                             <Icon
                                 :icon="getCategoryIcon(tool.category)"
-                                class="text-2xl text-gray-400"
+                                class="text-2xl text-muted-foreground"
                             />
                         </div>
                         <!-- Title -->
-                        <div class="text-sm font-medium leading-tight text-gray-600">
+                        <div class="text-sm font-medium leading-tight text-muted-foreground">
                             {{ tool.name }}
                         </div>
                         <!-- Spacer -->

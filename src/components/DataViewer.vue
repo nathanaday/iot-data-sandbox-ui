@@ -115,27 +115,27 @@ loadData();
       </div>
 
       <!-- Statistics -->
-      <div v-if="statistics" class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
+      <div v-if="statistics" class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted rounded-lg">
         <div>
-          <div class="text-xs text-gray-600">Count</div>
+          <div class="text-xs text-muted-foreground">Count</div>
           <div class="text-lg font-semibold">{{ statistics.count.toLocaleString() }}</div>
         </div>
         <div>
-          <div class="text-xs text-gray-600">Min</div>
+          <div class="text-xs text-muted-foreground">Min</div>
           <div class="text-lg font-semibold">{{ formatValue(statistics.min) }}</div>
         </div>
         <div>
-          <div class="text-xs text-gray-600">Max</div>
+          <div class="text-xs text-muted-foreground">Max</div>
           <div class="text-lg font-semibold">{{ formatValue(statistics.max) }}</div>
         </div>
         <div>
-          <div class="text-xs text-gray-600">Average</div>
+          <div class="text-xs text-muted-foreground">Average</div>
           <div class="text-lg font-semibold">{{ formatValue(statistics.avg) }}</div>
         </div>
       </div>
 
       <!-- Query metadata -->
-      <div v-if="queryResult" class="text-sm text-gray-600 space-y-1">
+      <div v-if="queryResult" class="text-sm text-muted-foreground space-y-1">
         <div>
           <span class="font-semibold">Query Range:</span>
           {{ formatTimestamp(queryResult.start_time) }} to {{ formatTimestamp(queryResult.end_time) }}
@@ -150,36 +150,36 @@ loadData();
       <div v-if="dataPoints.length > 0" class="space-y-2">
         <h3 class="font-semibold">Data Points (showing first 100)</h3>
         <div class="max-h-96 overflow-y-auto border rounded-lg">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50 sticky top-0">
+          <table class="min-w-full divide-y divide-border">
+            <thead class="bg-muted sticky top-0">
               <tr>
-                <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">
+                <th class="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">
                   Timestamp
                 </th>
-                <th class="px-4 py-2 text-right text-xs font-medium text-gray-600 uppercase">
+                <th class="px-4 py-2 text-right text-xs font-medium text-muted-foreground uppercase">
                   Value
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="(point, index) in dataPoints.slice(0, 100)" :key="index" class="hover:bg-gray-50">
-                <td class="px-4 py-2 text-sm text-gray-900">
+            <tbody class="bg-card divide-y divide-border">
+              <tr v-for="(point, index) in dataPoints.slice(0, 100)" :key="index" class="hover:bg-muted">
+                <td class="px-4 py-2 text-sm text-foreground">
                   {{ formatTimestamp(point.timestamp) }}
                 </td>
-                <td class="px-4 py-2 text-sm text-gray-900 text-right font-mono">
+                <td class="px-4 py-2 text-sm text-foreground text-right font-mono">
                   {{ formatValue(point.value) }}
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-        <div v-if="dataPoints.length > 100" class="text-sm text-gray-500 text-center">
+        <div v-if="dataPoints.length > 100" class="text-sm text-muted-foreground text-center">
           Showing 100 of {{ dataPoints.length.toLocaleString() }} data points
         </div>
       </div>
 
       <!-- Empty state -->
-      <div v-else-if="!loading && !error" class="text-center py-8 text-gray-500">
+      <div v-else-if="!loading && !error" class="text-center py-8 text-muted-foreground">
         No data points found for the selected time range.
       </div>
     </CardContent>

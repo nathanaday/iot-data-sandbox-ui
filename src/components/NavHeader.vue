@@ -12,6 +12,7 @@ import { computed } from "vue"
 
 import { Kbd } from "@/components/ui/kbd"
 import githubMark from "@/assets/github-mark.svg"
+import DarkModeToggle from "@/components/DarkModeToggle.vue"
 
 import { useProjectsStore } from "@/stores/projects"
 const projectsStore = useProjectsStore()
@@ -85,12 +86,13 @@ const contribute_links: { title: string, icon: string, href: string, description
 
 
         <div class="px-4">
-            <div class="text-sm font-medium leading-none text-gray-600">{{ currentProject ? currentProject : "No Project Selected" }}</div>
+            <div class="text-sm font-medium leading-none text-muted-foreground">{{ currentProject ? currentProject : "No Project Selected" }}</div>
         </div>
-        
+
         <div class="flex-1"></div>
         <div class="flex items-center h-full px-4 gap-4">
-            <span class="text-2xl font-semibold text-gray-600">IoT Data Sandbox</span>
+            <span class="text-2xl font-semibold text-muted-foreground">IoT Data Sandbox</span>
+            <DarkModeToggle />
             <Kbd>v.0.1.0</Kbd>
         </div>
     </NavigationMenu>

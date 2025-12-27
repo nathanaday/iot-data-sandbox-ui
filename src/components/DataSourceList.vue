@@ -83,7 +83,7 @@ onMounted(() => {
 
     <!-- Empty state -->
     <div v-else-if="!loading && dataSources.length === 0" class="text-center py-8">
-      <p class="text-gray-500">No datasources found. Upload a CSV file to get started.</p>
+      <p class="text-muted-foreground">No datasources found. Upload a CSV file to get started.</p>
     </div>
 
     <!-- Datasources grid -->
@@ -102,7 +102,7 @@ onMounted(() => {
             {{ formatDate(ds.start_time) }}<br>
             to {{ formatDate(ds.end_time) }}
           </div>
-          <div class="text-sm text-gray-500">
+          <div class="text-sm text-muted-foreground">
             Created: {{ formatDate(ds.when_created) }}
           </div>
         </CardContent>
