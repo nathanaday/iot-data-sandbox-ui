@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
 import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Menubar } from '@/components/ui/menubar';
 import { Icon } from '@iconify/vue';
 import { useToolsStore } from '@/stores/tools';
+import ToolExecutionModal from '@/components/ToolExecutionModal.vue';
 import type { ToolManifest } from '@/api';
 
 const toolsStore = useToolsStore();
@@ -29,13 +30,18 @@ const isExpanded = (toolName: string): boolean => {
 
 const getCategoryIcon = (category: string): string => {
     const icons: Record<string, string> = {
-        'analysis': 'mdi:chart-line',
+        'analysis': 'mdi:instant-mix',
         'ai': 'mdi:creation',
-        'filter': 'mdi:chart-sankey-variant',
-        'transform': 'mdi:graph',
-        'other': 'mdi:tools'
+        'filter': 'mdi:instant-mix',
+        'transform': 'mdi:instant-mix',
+        'other': 'mdi:instant-mix'
     };
-    return icons[category] ?? icons['other'] ?? 'mdi:tools';
+    return icons[category] ?? icons['other'] ?? 'mdi:instant-mix';
+};
+
+const handleExecuteClick = (tool: ToolManifest, event: Event) => {
+    event.stopPropagation();
+    toolsStore.selectTool(tool);
 };
 
 // Fetch tools on mount
@@ -84,19 +90,25 @@ watch(tools, (newTools) => {
                         <div class="flex-shrink-0">
                             <Icon
                                 :icon="getCategoryIcon(tool.category)"
-                                class="text-2xl text-gray-600"
+                                class="text-2xl text-gray-400"
                             />
                         </div>
                         <!-- Title -->
-                        <div class="text-sm font-medium leading-tight">
+                        <div class="text-sm font-medium leading-tight text-gray-600">
                             {{ tool.name }}
                         </div>
                         <!-- Spacer -->
                         <div class="flex-grow"></div>
-                        <!-- Parameter count badge -->
-                        <Badge variant="secondary" class="text-xs">
-                            {{ tool.parameters.length }} param{{ tool.parameters.length !== 1 ? 's' : '' }}
-                        </Badge>
+                        <!-- Execute button -->
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            class="h-7 px-2"
+                            @click="handleExecuteClick(tool, $event)"
+                        >
+                            <Icon icon="mdi:play" class="mr-1" />
+                            Run
+                        </Button>
                         <!-- Expand/collapse icon -->
                         <div class="flex-shrink-0">
                             <Icon
@@ -149,4 +161,7 @@ watch(tools, (newTools) => {
             </Card>
         </CardContent>
     </Card>
+
+    <!-- Tool Execution Modal -->
+    <ToolExecutionModal />
 </template>

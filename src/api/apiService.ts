@@ -24,6 +24,8 @@ import type {
   ToolManifest,
   UploadJobResponse,
   JobStatusResponse,
+  ToolExecuteRequest,
+  ToolExecuteResponse,
 } from './types';
 import { apiConfig } from './config';
 
@@ -449,6 +451,18 @@ export class ApiService {
   async getToolManifests(): Promise<ToolManifest[]> {
     const response = await this.axiosInstance.get<ToolManifest[]>(
       '/api/tools'
+    );
+    return response.data;
+  }
+
+  /**
+   * Execute a tool on layer data
+   * POST /api/tools/execute
+   */
+  async executeTool(request: ToolExecuteRequest): Promise<ToolExecuteResponse> {
+    const response = await this.axiosInstance.post<ToolExecuteResponse>(
+      '/api/tools/execute',
+      request
     );
     return response.data;
   }

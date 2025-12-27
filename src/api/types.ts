@@ -225,3 +225,33 @@ export interface JobStatusResponse {
   completed_at?: string;
 }
 
+/**
+ * Request to execute a tool on layer data
+ */
+export interface ToolExecuteRequest {
+  tool_name: string;
+  source_layer_id: number;
+  project_id: number;
+  output_name: string;
+  parameters: Record<string, unknown>;
+}
+
+/**
+ * Summary information about tool execution result
+ */
+export interface ToolResultSummary {
+  rows?: number;
+  message?: string;
+}
+
+/**
+ * Response from executing a tool on layer data
+ */
+export interface ToolExecuteResponse {
+  success: boolean;
+  layer?: LayerResponse;
+  result_type: string;
+  raw_result?: unknown;
+  result_summary: ToolResultSummary;
+}
+

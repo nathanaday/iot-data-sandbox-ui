@@ -26,6 +26,9 @@ export type {
   ParameterDefinition,
   ToolManifest,
   ToolManifestListResponse,
+  ToolExecuteRequest,
+  ToolExecuteResponse,
+  ToolResultSummary,
 } from './types';
 
 // Export client and utilities
