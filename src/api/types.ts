@@ -255,3 +255,121 @@ export interface ToolExecuteResponse {
   result_summary: ToolResultSummary;
 }
 
+// ============================
+// LLM Provider Types
+// ============================
+
+/**
+ * Supported LLM provider types
+ */
+export type LLMProviderType =
+  | 'openai'
+  | 'azure_openai'
+  | 'anthropic'
+  | 'google_ai'
+  | 'vertex_ai'
+  | 'ollama'
+  | 'huggingface';
+
+/**
+ * LLM provider configuration response
+ */
+export interface LLMProviderResponse {
+  provider_id: number;
+  provider_type: LLMProviderType;
+  name: string;
+  base_url?: string;
+  default_model?: string;
+  is_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Response from listing all LLM providers
+ */
+export interface LLMProviderListResponse {
+  providers: LLMProviderResponse[];
+}
+
+/**
+ * Request to create a new LLM provider
+ */
+export interface CreateLLMProviderRequest {
+  provider_type: LLMProviderType;
+  name: string;
+  api_key: string;
+  base_url?: string;
+  default_model?: string;
+}
+
+/**
+ * Request to update an existing LLM provider
+ */
+export interface UpdateLLMProviderRequest {
+  name?: string;
+  api_key?: string;
+  base_url?: string;
+  default_model?: string;
+  is_enabled?: boolean;
+}
+
+// ============================
+// Chat Types
+// ============================
+
+/**
+ * Request to submit a chat message
+ */
+export interface ChatRequest {
+  message: string;
+  conversation_id?: string;
+  provider_id: number;
+}
+
+/**
+ * Response from submitting a chat message
+ */
+export interface ChatJobResponse {
+  job_id: string;
+  conversation_id: string;
+}
+
+/**
+ * Status of a chat job
+ */
+export type ChatJobStatus = 'pending' | 'streaming' | 'complete' | 'failed';
+
+/**
+ * Status response for a chat job
+ */
+export interface ChatStatusResponse {
+  job_id: string;
+  conversation_id: string;
+  status: ChatJobStatus;
+  response_text: string;
+  input_tokens: number;
+  output_tokens: number;
+  error?: string;
+  created_at: string;
+  updated_at: string;
+  completed_at?: string;
+}
+
+/**
+ * Chat message in a conversation
+ */
+export interface ChatMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: string;
+  token_count?: number;
+}
+
+/**
+ * Request to clear chat history
+ */
+export interface ClearHistoryRequest {
+  conversation_id: string;
+}
+

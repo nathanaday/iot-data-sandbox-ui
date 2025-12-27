@@ -26,6 +26,13 @@ import type {
   JobStatusResponse,
   ToolExecuteRequest,
   ToolExecuteResponse,
+  LLMProviderResponse,
+  LLMProviderListResponse,
+  CreateLLMProviderRequest,
+  UpdateLLMProviderRequest,
+  ChatRequest,
+  ChatJobResponse,
+  ChatStatusResponse,
 } from './types';
 import { apiConfig } from './config';
 
@@ -465,6 +472,101 @@ export class ApiService {
       request
     );
     return response.data;
+  }
+
+  // ============================
+  // LLM PROVIDER ENDPOINTS
+  // ============================
+
+  /**
+   * List all LLM providers
+   * GET /api/llm/providers
+   */
+  async listLLMProviders(): Promise<LLMProviderListResponse> {
+    const response = await this.axiosInstance.get<LLMProviderListResponse>(
+      '/api/llm/providers'
+    );
+    return response.data;
+  }
+
+  /**
+   * Create a new LLM provider
+   * POST /api/llm/providers
+   */
+  async createLLMProvider(data: CreateLLMProviderRequest): Promise<LLMProviderResponse> {
+    const response = await this.axiosInstance.post<LLMProviderResponse>(
+      '/api/llm/providers',
+      data
+    );
+    return response.data;
+  }
+
+  /**
+   * Get LLM provider by ID
+   * GET /api/llm/providers/{id}
+   */
+  async getLLMProvider(id: number): Promise<LLMProviderResponse> {
+    const response = await this.axiosInstance.get<LLMProviderResponse>(
+      `/api/llm/providers/${id}`
+    );
+    return response.data;
+  }
+
+  /**
+   * Update an LLM provider
+   * PUT /api/llm/providers/{id}
+   */
+  async updateLLMProvider(id: number, data: UpdateLLMProviderRequest): Promise<LLMProviderResponse> {
+    const response = await this.axiosInstance.put<LLMProviderResponse>(
+      `/api/llm/providers/${id}`,
+      data
+    );
+    return response.data;
+  }
+
+  /**
+   * Delete an LLM provider
+   * DELETE /api/llm/providers/{id}
+   */
+  async deleteLLMProvider(id: number): Promise<void> {
+    await this.axiosInstance.delete(`/api/llm/providers/${id}`);
+  }
+
+  // ============================
+  // CHAT ENDPOINTS
+  // ============================
+
+  /**
+   * Submit a chat message
+   * POST /api/chat
+   */
+  async submitChatMessage(data: ChatRequest): Promise<ChatJobResponse> {
+    const response = await this.axiosInstance.post<ChatJobResponse>(
+      '/api/chat',
+      data
+    );
+    return response.data;
+  }
+
+  /**
+   * Get chat job status
+   * GET /api/chat/{jobId}
+   */
+  async getChatStatus(jobId: string): Promise<ChatStatusResponse> {
+    const response = await this.axiosInstance.get<ChatStatusResponse>(
+      `/api/chat/${jobId}`
+    );
+    return response.data;
+  }
+
+  /**
+   * Clear chat history
+   * DELETE /api/chat/history
+   */
+  async clearChatHistory(conversationId: string): Promise<void> {
+    await this.axiosInstance.delete('/api/chat/history', {
+      data: { conversation_id: conversationId }
+    });
   }
 }
 

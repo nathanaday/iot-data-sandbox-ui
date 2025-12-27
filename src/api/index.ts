@@ -29,6 +29,15 @@ export type {
   ToolExecuteRequest,
   ToolExecuteResponse,
   ToolResultSummary,
+  LLMProviderType,
+  LLMProviderResponse,
+  LLMProviderListResponse,
+  CreateLLMProviderRequest,
+  UpdateLLMProviderRequest,
+  ChatMessage,
+  ChatRequest,
+  ChatJobResponse,
+  ChatStatusResponse,
 } from './types';
 
 // Export client and utilities
