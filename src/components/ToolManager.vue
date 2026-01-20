@@ -81,7 +81,7 @@ watch(tools, (newTools) => {
             <Card
                 v-for="tool in tools"
                 :key="tool.name"
-                class="border-2 border-gray-200 hover:border-gray-300 transition-colors min-w-[240px] cursor-pointer"
+                class="border-2 border-gray-200 hover:border-gray-300 transition-colors min-w-[240px] cursor-pointer my-1 py-2"
                 @click="handleCardClick(tool.name)"
             >
                 <div class="px-4 py-3">

@@ -17,47 +17,52 @@ import {
 <template>
     <div class="flex flex-col h-screen bg-background">
         <!-- Row 1: Header - sticky to top -->
-        <header class="sticky top-0 z-50 bg-card shadow-sm border-b border-border">
+        <header class="shrink-0 bg-card shadow-sm border-b border-border">
             <NavHeader />
         </header>
 
-        <!-- Row 2: Main content area - fills available space -->
-        <main class="flex-1 overflow-hidden w-full px-2 py-2">
-            <ResizablePanelGroup direction="horizontal" class="gap-2 h-full">
-                <!-- Left Panel: Tool Manager -->
-                <ResizablePanel :default-size="25" :max-size="50" :min-size="10" :collapsible="true"
-                    :collapsed-size="0">
-                    <ToolManager />
-                </ResizablePanel>
+        <!-- Row 2: Main content area with resizable bottom panel -->
+        <ResizablePanelGroup direction="vertical" class="flex-1 overflow-hidden">
+            <!-- Top: Main panels area -->
+            <ResizablePanel :default-size="75" :min-size="30">
+                <div class="h-full w-full px-2 py-2">
+                    <ResizablePanelGroup direction="horizontal" class="gap-2 h-full">
+                        <!-- Left Panel: Tool Manager -->
+                        <ResizablePanel :default-size="25" :max-size="50" :min-size="10" :collapsible="true"
+                            :collapsed-size="0">
+                            <ToolManager />
+                        </ResizablePanel>
 
-                <!-- Left Resize Handle -->
-                <ResizableHandle with-handle />
+                        <!-- Left Resize Handle -->
+                        <ResizableHandle with-handle />
 
-                <!-- Center Panel: Data Visualization -->
-                <ResizablePanel :default-size="50" :min-size="30">
-                    <PlotManager />
-                </ResizablePanel>
+                        <!-- Center Panel: Data Visualization -->
+                        <ResizablePanel :default-size="50" :min-size="30">
+                            <PlotManager />
+                        </ResizablePanel>
 
-                <!-- Right Resize Handle -->
-                <ResizableHandle with-handle />
+                        <!-- Right Resize Handle -->
+                        <ResizableHandle with-handle />
 
-                <!-- Right Panel: Layer Manager -->
-                <ResizablePanel :default-size="25" :max-size="50" :min-size="10" :collapsible="true"
-                    :collapsed-size="0">
-                    <LayerManager />
-                </ResizablePanel>
-            </ResizablePanelGroup>
-        </main>
+                        <!-- Right Panel: Layer Manager -->
+                        <ResizablePanel :default-size="25" :max-size="50" :min-size="10" :collapsible="true"
+                            :collapsed-size="0">
+                            <LayerManager />
+                        </ResizablePanel>
+                    </ResizablePanelGroup>
+                </div>
+            </ResizablePanel>
 
-        <!-- Row 3: Agent View - sticky to bottom, max height 250px -->
-        <div class="sticky bottom-0 z-50 max-h-[250px] overflow-y-auto bg-background container mx-auto px-2 py-2">
-            <AgentView />
-        </div>
+            <!-- Vertical Resize Handle for Agent View -->
+            <ResizableHandle with-handle />
+
+            <!-- Bottom: Agent View -->
+            <ResizablePanel :default-size="25" :min-size="10" :max-size="60" :collapsible="true" :collapsed-size="0">
+                <div class="h-full w-full px-2 py-2 overflow-hidden">
+                    <AgentView />
+                </div>
+            </ResizablePanel>
+        </ResizablePanelGroup>
     </div>
 </template>
 
-<style scoped>
-.container {
-    width: 100%;
-}
-</style>

@@ -6,6 +6,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { apiService } from '@/api';
 import type { ChatMessage, ChatStatusResponse } from '@/api';
+import { useProjectsStore } from './projects';
 
 const POLLING_INTERVAL = 200; // 200ms polling interval
 
@@ -60,6 +61,14 @@ export const useChatStore = defineStore('chat', () => {
       return;
     }
 
+    // Get current project ID
+    const projectsStore = useProjectsStore();
+    const projectId = projectsStore.currentProject?.project_id;
+    if (!projectId) {
+      error.value = 'Please select a project first';
+      return;
+    }
+
     const startTime = Date.now();
     error.value = null;
 
@@ -77,6 +86,7 @@ export const useChatStore = defineStore('chat', () => {
         message: content,
         conversation_id: conversationId.value || undefined,
         provider_id: selectedProviderId.value,
+        project_id: projectId,
       });
 
       // Update conversation ID if this is a new conversation

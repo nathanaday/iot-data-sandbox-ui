@@ -325,6 +325,7 @@ export interface ChatRequest {
   message: string;
   conversation_id?: string;
   provider_id: number;
+  project_id: number;
 }
 
 /**
@@ -338,7 +339,18 @@ export interface ChatJobResponse {
 /**
  * Status of a chat job
  */
-export type ChatJobStatus = 'pending' | 'streaming' | 'complete' | 'failed';
+export type ChatJobStatus = 'pending' | 'tool_calling' | 'streaming' | 'complete' | 'failed';
+
+/**
+ * Information about a tool call made by the LLM agent
+ */
+export interface ToolCallInfo {
+  tool_name: string;
+  arguments: string;
+  result?: string;
+  success: boolean;
+  executed_at: string;
+}
 
 /**
  * Status response for a chat job
@@ -354,6 +366,9 @@ export interface ChatStatusResponse {
   created_at: string;
   updated_at: string;
   completed_at?: string;
+  tool_calls?: ToolCallInfo[];
+  current_iteration?: number;
+  max_iterations?: number;
 }
 
 /**
