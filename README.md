@@ -1,14 +1,17 @@
 # iot-data-sandbox-ui
 
-The UI source code for `iot-data-sandbox`!
+Frontend application for [iot-data-sandbox](https://github.com/nathanaday/iot-data-sandbox). See the main repository for project overview and full documentation.
 
+## Quick Start
 
-### Integrations
+```bash
+npm install && npm run dev
+```
 
-Vue.js + Typescript + Vite
+Expects the backend running at `localhost:8080`.
 
-Extras:
-- TailwindCSS (https://v2.tailwindcss.com/docs/guides/vue-3-vite)
-- shadcn-vue (https://www.shadcn-vue.com/docs/installation/vite.html)
+## Stack
 
-
+- Vue.js + TypeScript + Vite
+- [TailwindCSS](https://v2.tailwindcss.com/docs/guides/vue-3-vite)
+- [shadcn-vue](https://www.shadcn-vue.com/docs/installation/vite.html)
